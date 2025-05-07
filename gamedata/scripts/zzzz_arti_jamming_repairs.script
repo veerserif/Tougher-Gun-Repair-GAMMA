@@ -2,6 +2,7 @@
 zzzz_arti_jamming_repairs.script taken from most recent overwriting copy in GAMMA 0.9.3.1 (provided by Momopate's Barrel Condition Effects Display)
 Modified for Tougher Gun Repairs for GAMMA
 Main changes: line 555 (color threshold for parts) and line 658 (weapon cleaning threshold)
+Future changes: probably to the function weapon_eval_parts or anything else related to % of parts in spawned weapons
 --]]
 
 local ini_parts   = itms_manager.ini_parts
@@ -58,7 +59,7 @@ cleaning_threshold = 75
 -- 		end
 -- 	end
 -- end
--- what is good part, what is not
+-- what is good part, what is not. veer: this probably needs checking so that we can make parts drop at lower cond
 local good_breakpoint = 60
 function weapon_eval_parts(wpn)
     local sec = ini_sys:r_string_ex(wpn:section(),"parent_section") or wpn:section()
