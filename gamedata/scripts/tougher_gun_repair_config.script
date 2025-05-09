@@ -1,2 +1,7 @@
  -- Item condition has to be at least x% to allow cleaning.
-cleaning_threshold = 75
+cleaning_threshold = 60
+cleaning_threshold_ceil = 98
+
+ -- Item condition has to be at least x% to allow repairing.
+repairing_threshold = 1
+repairing_threshold_ceil = 59
