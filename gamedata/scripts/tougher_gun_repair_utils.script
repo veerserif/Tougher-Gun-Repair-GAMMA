@@ -1,0 +1,24 @@
+local tgrCfg = tougher_gun_repair_config
+
+function CheckRepairThreshold(itemCondition)
+    if not itemCondition then return false end
+
+    return IsBetween(itemCondition,
+    tgrCfg.repairing_threshold,
+    tgrCfg.repairing_threshold_ceil)
+end
+
+function CheckCleanThreshold(itemCondition)
+    if not itemCondition then return false end
+
+    return IsBetween(itemCondition,
+    tgrCfg.cleaning_threshold,
+    tgrCfg.cleaning_threshold_ceil)
+end
+
+function IsBetween(num, min, max)
+    if not num then return false end
+    if not min then return false end
+    if not max then return false end
+    if num >= min and num <= max then return true end
+end
