@@ -1,6 +1,6 @@
 --#region Tougher Gun repairs
 -- Add a cleaning threshold variable. TO-DO: make it MCM configurable?
-cleaning_threshold = 75
+local tougherGunRepairCfg = tougher_gun_repair_config
 --#endregion
 
 quality_map = {
@@ -61,7 +61,7 @@ OldProcessPart = zzzz_arti_jamming_repairs.process_part
 zzzz_arti_jamming_repairs.process_part = function(name, condition)
 	local severity = condition == -1 and "missing" or math.floor(condition / 20)
 	local clr = clr_r
-	if condition >= cleaning_threshold then clr = clr_g -- changed to use cleaning_threshold
+	if condition >= tougherGunRepairCfg.cleaning_threshold then clr = clr_g -- changed to use cleaning_threshold
 	elseif condition > 20 then clr = clr_o 
 	elseif condition == -1 then clr = clr_r end
 	local part_name = ""
@@ -108,7 +108,7 @@ zzzz_arti_jamming_repairs.has_suitable_kit = function(obj)
 			if has_repair and v < 98 then
 				allow = true
 			-- allow for clean
-			elseif v >= cleaning_threshold and has_clean then -- use cleaning_threshold
+			elseif v >= tougherGunRepairCfg.cleaning_threshold and has_clean then -- use cleaning_threshold
 				allow = true
 			end
 		end

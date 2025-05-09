@@ -1,0 +1,2 @@
+ -- Item condition has to be at least x% to allow cleaning.
+cleaning_threshold = 75
