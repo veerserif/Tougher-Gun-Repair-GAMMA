@@ -10,3 +10,5 @@ repairing_threshold_ceil = 59 --Should be used only to check if you can reapir t
 --A charge always restores half of the max threshold (We are rounding up in a very forgiving way)
 repairing_charge_restoration = math.ceil(repairing_threshold_ceil / 2)
 repairing_charge_vice_bonus = 5
+
+workshop_show_maintain_button_without_vice = false

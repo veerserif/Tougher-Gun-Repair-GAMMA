@@ -3,7 +3,7 @@ local tgrUtils = tougher_gun_repair_utils
 
 OldOpenWorkshop = ui_furniture_workshop.OpenWorkshop
 ui_furniture_workshop.OpenWorkshop = function (...)
-    tgrUtils.isWorkshopOpen = true
+    tgrUtils.isUsingVice = true
     OldOpenWorkshop(...)
     return true
 end

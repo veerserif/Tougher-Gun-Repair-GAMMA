@@ -2,7 +2,7 @@ tgrUtils = tougher_gun_repair_utils
 
 OldUiWorkshopClose = ui_workshop.UIWorkshop.Close
 ui_workshop.UIWorkshop.Close = function (...)
-    tgrUtils.isWorkshopOpen = false
+    tgrUtils.isUsingVice = false
     OldUiWorkshopClose(...)
 end
 
@@ -79,3 +79,48 @@ if (not self.highlight_btn) then
 
 	ui_workshop.SetTip("repair_tip_3", "repair_warning_3", "repair_solution_3", sec_part, pst, self.info_text)
 end
+
+OldUiWorkshopRepairInitControls = ui_workshop.UIWorkshopRepair.InitControls
+ui_workshop.UIWorkshopRepair.InitControls = function (self, x, y)
+	OldUiWorkshopRepairInitControls(self, x, y)
+	self.btn_maintain = self.xml:Init3tButton("workshop:repair:btn_maintain", self)
+	self:Register(self.btn_maintain, "button_repair")
+end
+
+OldUiWorkshopRepairReset = ui_workshop.UIWorkshopRepair.Reset
+ui_workshop.UIWorkshopRepair.Reset = function (self)
+	self.btn_maintain:Enable(false)
+	self.btn_maintain:Show(false)
+
+	OldUiWorkshopRepairReset(self)
+end
+
+OldUiWorkshopRepairOnCcMouse1 = ui_workshop.UIWorkshopRepair.On_CC_Mouse1
+ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
+    OldUiWorkshopRepairOnCcMouse1(self, cont, idx)
+	local ci = self.CC[cont].cell[idx]
+	if (not ci) then
+		return
+	end
+
+	if cont == "inventory" then
+		self:CheckToggleMaintainButton() -- This is not yet the part selected. Only the item
+	end
+end
+
+--UIWorkshopRepair Extension. I would like to keep this in a separate file,
+--because this injects a completely new function to the workshop repair class,
+--but that would hurt readibility rn.
+ui_workshop.UIWorkshopRepair.CheckToggleMaintainButton = function (self)
+	if tgrUtils.ShouldDisplayMaintainButton() ~= true then
+		self.btn_maintain:Show(false)
+		self.btn_maintain:Enable(false)
+	end
+
+	local obj = self.CC["inventory"]:GetCell_Selected(true)
+	local enableBtn = obj and IsWeapon(obj) or false
+
+	self.btn_maintain:Show(true)
+	self.btn_maintain:Enable(enableBtn)
+end
+

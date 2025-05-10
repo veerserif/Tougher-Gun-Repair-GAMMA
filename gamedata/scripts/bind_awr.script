@@ -136,7 +136,7 @@ function physic_object_on_use_callback(_obj,who) -- Binder function using vise m
 			if (ui) then
 				dout(nil, "call UI")
 				ui:ShowDialog(true)
-				tougher_gun_repair_utils.isWorkshopOpen = true
+				tougher_gun_repair_utils.isUsingVice = true
 			end
 			return true
 		end
