@@ -6,7 +6,7 @@ ui_workshop.UIWorkshop.Close = function (...)
     OldUiWorkshopClose(...)
 end
 
-OldUiWorkshopRepaor = ui_workshop.UIWorkshopRepair.ListSpareParts
+OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 if (not self.highlight_btn) then
 		return
