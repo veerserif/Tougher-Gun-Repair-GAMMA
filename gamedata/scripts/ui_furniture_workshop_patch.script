@@ -1,0 +1,9 @@
+--SERIOUS: This isn't the right file to patch. This is the dialog window before the actual workshop opens.
+local tgrUtils = tougher_gun_repair_utils
+
+OldOpenWorkshop = ui_furniture_workshop.OpenWorkshop
+ui_furniture_workshop.OpenWorkshop = function (...)
+    tgrUtils.isWorkshopOpen = true
+    OldOpenWorkshop(...)
+    return true
+end

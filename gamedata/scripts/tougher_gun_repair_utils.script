@@ -1,4 +1,5 @@
 local tgrCfg = tougher_gun_repair_config
+isWorkshopOpen = false
 
 function CheckRepairThreshold(itemCondition)
     if not itemCondition then return false end
@@ -42,6 +43,8 @@ function GetCleanCondToSet(itemCondition)
 end
 
 --Vices count too
+--This function is pretty redundent atm. We should still keep it. 
+--Will make it easier to inject extra logic in the future if need be.
 function IsPlayerUsingWorkshop()
-    return false
+    return isWorkshopOpen
 end

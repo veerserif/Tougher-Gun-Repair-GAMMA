@@ -1,0 +1,5 @@
+OldUiWorkshopClose = ui_workshop.UIWorkshop.Close
+ui_workshop.UIWorkshop.Close = function (...)
+    tougher_gun_repair_utils.isWorkshopOpen = false
+    OldUiWorkshopClose(...)
+end
