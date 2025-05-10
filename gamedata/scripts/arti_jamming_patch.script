@@ -1,6 +1,7 @@
 --#region Tougher Gun repairs
 -- Add a cleaning threshold variable. TO-DO: make it MCM configurable?
-local tougherGunRepairCfg = tougher_gun_repair_config
+local tgrCfg = tougher_gun_repair_config
+local tgrUtils = tougher_gun_repair_utils
 --#endregion
 
 quality_map = {
@@ -61,7 +62,7 @@ OldProcessPart = zzzz_arti_jamming_repairs.process_part
 zzzz_arti_jamming_repairs.process_part = function(name, condition)
 	local severity = condition == -1 and "missing" or math.floor(condition / 20)
 	local clr = clr_r
-	if condition >= tougherGunRepairCfg.cleaning_threshold then clr = clr_g -- changed to use cleaning_threshold
+	if condition >= tgrCfg.cleaning_threshold then clr = clr_g -- changed to use cleaning_threshold
 	elseif condition > 20 then clr = clr_o 
 	elseif condition == -1 then clr = clr_r end
 	local part_name = ""
@@ -105,13 +106,45 @@ zzzz_arti_jamming_repairs.has_suitable_kit = function(obj)
 	for k,v in pairs(parts) do
 		if is_part(k) then
 			-- allow for repair. VEER TO-DO: remove this or contrain to "in workshop UI only"
-			if has_repair and v < 98 then
+			if tgrUtils.CheckRepairThreshold(v) and has_repair then
 				allow = true
 			-- allow for clean
-			elseif v >= tougherGunRepairCfg.cleaning_threshold and has_clean then -- use cleaning_threshold
+			elseif tgrUtils.CheckCleanThreshold(v) and has_clean then -- use cleaning_threshold
 				allow = true
 			end
 		end
 	end
 	return allow
+end
+
+--SERIOUS: Need to patch differently to stay compatible with SERIOUS Weapon Maintain Features. 
+--(I just mark these veer, so later I can produce the compatibility patch easier)
+OldInitMaintenanceMenu = zzzz_arti_jamming_repairs.init_maintenance_menu
+zzzz_arti_jamming_repairs.init_maintenance_menu = function(obj)
+	local context_str = {}
+	local context_action = {}
+	local context_params = {}
+
+	local parts = item_parts.get_parts_con(obj)
+	local clean_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, true)
+	local repair_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, false)
+	for k,v in pairs(parts) do
+		if is_part(k) then
+			if tgrUtils.CheckRepairThreshold(v) and repair_kit then
+				table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, false))
+				table.insert(context_action,  "replace_part")
+				table.insert(context_params, {obj:id(), k, repair_kit:section(), false})
+
+			elseif tgrUtils.CheckCleanThreshold(v) then
+				if clean_kit then
+					table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, true))
+					table.insert(context_action,  "clean_part")
+					table.insert(context_params, {obj:id(), k, clean_kit:section(), true})
+				end
+			end
+		end
+	end
+	if not maint_gui then maint_gui = utils_ui_custom.UICellPropertiesCustom(zzzz_arti_jamming_repairs.replace_part) end
+	maint_gui:Reset(GetCursorPosition(), context_action, context_str, context_params)
+	ui_inventory.GUI:PlaySND(sound_object([[interface\inv_properties_2]]))
 end
