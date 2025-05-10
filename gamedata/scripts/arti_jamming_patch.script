@@ -148,3 +148,30 @@ zzzz_arti_jamming_repairs.init_maintenance_menu = function(obj)
 	maint_gui:Reset(GetCursorPosition(), context_action, context_str, context_params)
 	ui_inventory.GUI:PlaySND(sound_object([[interface\inv_properties_2]]))
 end
+
+OldReplacePart = zzzz_arti_jamming_repairs.replace_part
+zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
+	print_dbg("replacing part %s on item %s", part, id)
+	local kit = db.actor:object(kit_name)
+	local parts = se_load_var(id, nil, "parts")
+	if parts and parts[part] then
+		--SERIOUS: Should include the condition gain in the pda message!
+		if clean then
+			news_manager.send_tip(db.actor, gc("st_news_cleaned") .. " " .. ui_item.get_sec_name(part), nil, "swiss_knife", 6000)
+			parts[part] = tgrUtils.GetCleanCondToSet(parts[part])
+		else
+			news_manager.send_tip(db.actor, gc("st_news_parts_success") .. " " .. ui_item.get_sec_name(part), nil, "swiss_knife", 6000)
+			parts[part] = tgrUtils.GetRepairCondToSet(parts[part])
+		end
+		utils_item.discharge(kit)
+		-- restore condition too
+		local wpn = level.object_by_id(id)
+		wpn:set_condition( clamp(wpn:condition() + 0.1, 0, 0.999) )
+		if id == current_id() then
+			reset_cgd()
+		end
+	end
+
+	GetActorMenu():UpdateItems()
+	GetActorMenu():UpdateSlots()
+end
