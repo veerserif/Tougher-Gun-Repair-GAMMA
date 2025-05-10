@@ -1,5 +1,81 @@
+tgrUtils = tougher_gun_repair_utils
+
 OldUiWorkshopClose = ui_workshop.UIWorkshop.Close
 ui_workshop.UIWorkshop.Close = function (...)
-    tougher_gun_repair_utils.isWorkshopOpen = false
+    tgrUtils.isWorkshopOpen = false
     OldUiWorkshopClose(...)
+end
+
+OldUiWorkshopRepaor = ui_workshop.UIWorkshopRepair.ListSpareParts
+ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
+if (not self.highlight_btn) then
+		return
+	end
+	
+	self.selected_btn = self.highlight_btn
+	local sec_part = self.parts[self.selected_btn].sec
+	local con_part = self.parts[self.selected_btn].con
+	
+	local cc = self.CC["parts"]
+	local inv, inf, size_t = {},{}, 0
+	db.actor:iterate_inventory(function(owner,obj)
+		local sec = obj:section()
+		if (sec == sec_part) then
+			size_t = size_t + 1
+			inv[size_t] = obj
+			inf[size_t] = math.ceil(obj:condition() * 100)
+		end
+	end)
+	
+	--SERIOUS OPTI  
+	local stash = nil
+	if self.stashId then
+		stash = get_object_by_id(self.stashId)
+
+		stash:iterate_inventory_box(function(owner,obj)
+			local sec = obj:section()
+			if (sec == sec_part) then
+				size_t = size_t + 1
+				inv[size_t] = obj
+				inf[size_t] = math.ceil(obj:condition() * 100)
+			end
+		end)
+	end
+	--SERIOUS OPTI
+
+	cc:Reinit(inv, inf)
+	
+	local fnt = GetFontSmall()
+	for idx,ci in pairs(self.CC["parts"].cell) do
+		if ci:IsShown() then
+			local con100 = ci.flags.info
+			local con = ci.flags.info / 100
+			local g = clamp(512 * con, 0, 255)
+			local r = clamp(512 * (1- con), 0, 255)
+			ci:Add_CustomText(con100.."%", nil, nil, GetARGB(255,r,g,50), fnt)
+		end
+	end
+	
+	-- Hide unusable parts
+	for idx,ci in pairs(cc.cell) do
+		local obj = ci:IsShown() and cc:GetObj(idx)
+
+        if not tgrUtils.IsPlayerUsingVice() and (not obj or arti_jamming.is_barrel(obj:section())) and ci:IsShown() then
+            cc.can_select = false
+            ci:Colorize("red")
+        else
+            cc.can_select = true
+            if obj then
+                if (obj:condition() <= (con_part / 100)) then
+                    ci.flags.usable = false
+                    ci:Colorize("hide")
+                else
+                    ci.flags.usable = true
+                    ci:Colorize("def")
+                end
+            end
+        end
+	end
+
+	ui_workshop.SetTip("repair_tip_3", "repair_warning_3", "repair_solution_3", sec_part, pst, self.info_text)
 end

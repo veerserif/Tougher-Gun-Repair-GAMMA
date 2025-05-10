@@ -25,7 +25,7 @@ function IsBetween(num, min, max)
 end
 
 function GetRepairCondToSet(itemCondition)
-    if IsPlayerUsingWorkshop() then return clamp(itemCondition + tgrCfg.repairing_charge_restoration, 1, 100) end
+    if IsPlayerUsingVice() then return clamp(itemCondition + tgrCfg.repairing_charge_restoration, 1, 100) end
 
     --SERIOUS: Yes I deliberately use tgrCfg.cleaning_threshold as a max value.
     --This way you can't softlock yourself to: Having a 59% part that you can't clean yet, but can't reapir further either.
@@ -33,7 +33,7 @@ function GetRepairCondToSet(itemCondition)
 end
 
 function GetCleanCondToSet(itemCondition)
-    if IsPlayerUsingWorkshop() then
+    if IsPlayerUsingVice() then
         return clamp(itemCondition
             + tgrCfg.cleaning_charge_restoration
             + tgrCfg.cleaning_charge_vice_bonus, 1, 100)
@@ -45,6 +45,6 @@ end
 --Vices count too
 --This function is pretty redundent atm. We should still keep it. 
 --Will make it easier to inject extra logic in the future if need be.
-function IsPlayerUsingWorkshop()
+function IsPlayerUsingVice()
     return isWorkshopOpen
 end
