@@ -155,13 +155,17 @@ zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
 	local kit = db.actor:object(kit_name)
 	local parts = se_load_var(id, nil, "parts")
 	if parts and parts[part] then
-		--SERIOUS: Should include the condition gain in the pda message!
+		--SERIOUS: Should refactor to make it prettier + include more info?
 		if clean then
-			news_manager.send_tip(db.actor, gc("st_news_cleaned") .. " " .. ui_item.get_sec_name(part), nil, "swiss_knife", 6000)
-			parts[part] = tgrUtils.GetCleanCondToSet(parts[part])
+			local condAfterRepair = tgrUtils.GetCleanCondToSet(parts[part])
+			local msg = gc("st_news_cleaned") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
+			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
+			parts[part] = condAfterRepair
 		else
-			news_manager.send_tip(db.actor, gc("st_news_parts_success") .. " " .. ui_item.get_sec_name(part), nil, "swiss_knife", 6000)
-			parts[part] = tgrUtils.GetRepairCondToSet(parts[part])
+			local condAfterRepair = tgrUtils.GetRepairCondToSet(parts[part])
+			local msg = gc("st_news_parts_success") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
+			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
+			parts[part] = condAfterRepair
 		end
 		utils_item.discharge(kit)
 		-- restore condition too
