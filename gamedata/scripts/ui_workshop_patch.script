@@ -1,3 +1,4 @@
+tgrCfg = tougher_gun_repair_config
 tgrUtils = tougher_gun_repair_utils
 
 OldUiWorkshopClose = ui_workshop.UIWorkshop.Close
@@ -56,7 +57,7 @@ if (not self.highlight_btn) then
 	--SERIOUS OPTI
 
 	cc:Reinit(inv, inf)
-	
+
 	local fnt = GetFontSmall()
 	for idx,ci in pairs(self.CC["parts"].cell) do
 		if ci:IsShown() then
@@ -67,7 +68,7 @@ if (not self.highlight_btn) then
 			ci:Add_CustomText(con100.."%", nil, nil, GetARGB(255,r,g,50), fnt)
 		end
 	end
-	
+
 	-- Hide unusable parts
 	for idx,ci in pairs(cc.cell) do
 		local obj = ci:IsShown() and cc:GetObj(idx)
@@ -92,16 +93,37 @@ if (not self.highlight_btn) then
 	if self.maintenanceItems and tgrUtils.IsPlayerUsingVice() then
 		local cleanInfo = self.maintenanceItems.cleaning
 		local repairInfo = self.maintenanceItems.repairing
+		local maintenanceAmount = 0
 		local totalUses = 0
+
 
 		if (tgrUtils.CheckCleanThreshold(con_part) and cleanInfo.objWithLeastUses) then
 			self.btn_maintain:Enable(true)
 			totalUses = cleanInfo.compoundedUses
+			maintenanceAmount = tgrCfg.cleaning_charge_restoration + tgrCfg.cleaning_charge_vice_bonus
+
 			utils_xml.set_icon(cleanInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		elseif tgrUtils.CheckRepairThreshold(con_part) and repairInfo.objWithLeastUses then
 			self.btn_maintain:Enable(true)
 			totalUses = repairInfo.compoundedUses
+			maintenanceAmount = tgrCfg.repairing_charge_restoration + tgrCfg.repairing_charge_vice_bonus
+
 			utils_xml.set_icon(repairInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
+		end
+
+		if maintenanceAmount > 0 then
+			for i=1,6 do
+				local shouldUpdate = not self.new_con or not self.new_con[i]
+
+				if shouldUpdate then
+					local currentPartCon = self.itm_con[i]
+					local currentPartConDef = self.itm_con_def[i]
+					currentPartCon:SetText(currentPartConDef)
+					if i == self.selected_btn then currentPartCon:SetText(currentPartCon:GetText() .. "\\n+" .. maintenanceAmount .. "%") end
+
+				elseif i == self.selected_btn then self.btn_maintain:Enable(false)
+				end
+			end
 		end
 
 		if totalUses > 0 then self.itm_num_rq:SetText((totalUses > 0 and clr_list["g"] or clr_list["r"]) .. tostring(totalUses)) end
@@ -153,6 +175,17 @@ ui_workshop.UIWorkshopRepair.InitCallBacks = function (self)
 	self:AddCallback("button_maintain", ui_events.BUTTON_CLICKED, self.MaintainPart, self)
 end
 
+
+
+OldListPartScheme = ui_workshop.UIWorkshopRepair.ListPartScheme
+ui_workshop.UIWorkshopRepair.ListPartScheme = function (self)
+	OldListPartScheme(self)
+	self.itm_con_def = {}
+
+	for i=1,6 do
+		self.itm_con_def[i] = self.itm_con[i]:GetText()
+	end
+end
 --UIWorkshopRepair Extension. I would like to keep this in a separate file,
 --because this injects a completely new function to the workshop repair class,
 --but that would hurt readibility rn.
