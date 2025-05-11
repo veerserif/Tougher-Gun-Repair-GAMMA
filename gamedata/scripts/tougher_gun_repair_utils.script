@@ -1,5 +1,10 @@
 local tgrCfg = tougher_gun_repair_config
 isUsingVice = false
+isWorkshopOptimizationActive = false
+
+function on_game_start()
+    if serious_workshop_utils then isWorkshopOptimizationActive = true end
+end
 
 function CheckRepairThreshold(itemCondition)
     if not itemCondition then return false end
@@ -48,9 +53,105 @@ function ShouldDisplayMaintainButton()
     return IsPlayerUsingVice()
 end
 
---Vices count too
+--Portable workshops count too
 --This function is pretty redundent atm. We should still keep it. 
---Will make it easier to inject extra logic in the future if need be.
+--Will make it easier to inject extra logic in the future if need be. (Like Portable workshops and Vices giving different bonuses)
 function IsPlayerUsingVice()
     return isUsingVice
+end
+
+--[[
+    THIS IS SUBOPTIMAL RIGHT NOW
+    This should happen once when the workshop/vice is opened and then managed in memory.
+    It is probably fine like this however. Optimizing this would be more complex and shouldn't be done prematurely.
+
+    Collects all repair items that are found in `maintenanceMap` argument.
+    Returns the object(s) with the least number of uses + returns all uses compounded.
+
+    returnValue =
+    {
+        cleaning =
+        {
+            objWithLeastUses = <toolObject>
+            compoundedUses = <int> --Uses collected from all tools that are the same type as `objWithLeastUses`
+        }
+        repairing =
+        {
+            objWithLeastUses = <toolObject>
+            compoundedUses = <int> --Uses collected from all tools that are the same type as `objWithLeastUses`
+        }
+    }
+--]]
+function GetMaintenanceItemsCompounded(stash, actor, maintenanceMap)
+    local cleaningLeastUses = 0
+    local repairingLeastUses = 0
+    local returnValue =
+    {
+        cleaning =
+        {
+            objWithLeastUses = nil,
+            compoundedUses = 0
+        },
+        repairing =
+        {
+            objWithLeastUses = nil,
+            compoundedUses = 0
+        }
+    }
+
+    local function itr(_, obj)
+        local objSection = obj:section()
+        local sectionFound = false
+        local isCleaning = nil
+
+        if maintenanceMap[1] == objSection then
+            sectionFound = true
+            isCleaning = true
+        elseif maintenanceMap[2] == objSection then
+            sectionFound = true
+            isCleaning = false
+        end
+
+        if sectionFound then
+            local uses = obj:get_remaining_uses()
+            if isCleaning then
+                if cleaningLeastUses == 0 or cleaningLeastUses > uses then
+                    cleaningLeastUses = uses
+                    returnValue.cleaning.objWithLeastUses = obj
+                end
+
+                returnValue.cleaning.compoundedUses = returnValue.cleaning.compoundedUses + uses
+            else
+                if repairingLeastUses == 0 or repairingLeastUses > uses then
+                    repairingLeastUses = uses
+                    returnValue.repairing.objWithLeastUses = obj
+                end
+
+                returnValue.repairing.compoundedUses = returnValue.repairing.compoundedUses + uses
+            end
+
+        end
+    end
+
+    if stash then
+        stash:iterate_inventory_box(itr, nil)
+    end
+    actor:iterate_inventory(itr, nil)
+
+    return returnValue
+end
+
+--SERIOUS: Could use unlocalizer later, so I don't duplicate the `zzzz_arti_jamming_repairs.script` table
+local toolkit_map = {
+	["pistol"] 		= {"cleaning_kit_p","toolkit_p"},
+	["shotgun"] 	= {"cleaning_kit_s","toolkit_s"},
+	["rifle_5"] 	= {"cleaning_kit_r5","toolkit_r5"},
+	["rifle_7"] 	= {"cleaning_kit_r7","toolkit_r7"},
+}
+
+function GetMaintenanceData(obj)
+	local repair_sec = SYS_GetParam(0, obj:section(), "repair_type") or "none"
+	local toolkit_sec = toolkit_map[repair_sec] or "none"
+
+	return toolkit_sec
 end

@@ -6,16 +6,28 @@ ui_workshop.UIWorkshop.Close = function (...)
     OldUiWorkshopClose(...)
 end
 
+local clr_list = {
+	["g"]    = utils_xml.get_color("d_green"),
+	["y"]    = utils_xml.get_color("yellow"),
+	["o"]    = utils_xml.get_color("d_orange"),
+	["r"]    = utils_xml.get_color("d_red"),
+	["b"]    = utils_xml.get_color("d_cyan"),
+	["b1"]   = utils_xml.get_color("pda_blue"),
+	["b2"]   = utils_xml.get_color("d_blue"),
+	["p"]    = utils_xml.get_color("d_purple"),
+	["dark"] = utils_xml.get_color("ui_gray_2"),
+}
+
 OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 if (not self.highlight_btn) then
 		return
 	end
-	
+
 	self.selected_btn = self.highlight_btn
 	local sec_part = self.parts[self.selected_btn].sec
 	local con_part = self.parts[self.selected_btn].con
-	
+
 	local cc = self.CC["parts"]
 	local inv, inf, size_t = {},{}, 0
 	db.actor:iterate_inventory(function(owner,obj)
@@ -77,6 +89,24 @@ if (not self.highlight_btn) then
         end
 	end
 
+	if self.maintenanceItems then
+		local cleanInfo = self.maintenanceItems.cleaning
+		local repairInfo = self.maintenanceItems.repairing
+		local totalUses = 0
+
+		if (tgrUtils.CheckCleanThreshold(con_part) and cleanInfo.objWithLeastUses) then
+			self.btn_maintain:Enable(true)
+			totalUses = cleanInfo.compoundedUses
+			utils_xml.set_icon(cleanInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
+		elseif tgrUtils.CheckRepairThreshold(con_part) and repairInfo.objWithLeastUses then
+			self.btn_maintain:Enable(true)
+			totalUses = repairInfo.compoundedUses
+			utils_xml.set_icon(repairInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
+		end
+
+		if totalUses > 0 then self.itm_num_rq:SetText((totalUses > 0 and clr_list["g"] or clr_list["r"]) .. tostring(totalUses)) end
+	end
+
 	ui_workshop.SetTip("repair_tip_3", "repair_warning_3", "repair_solution_3", sec_part, pst, self.info_text)
 end
 
@@ -84,7 +114,7 @@ OldUiWorkshopRepairInitControls = ui_workshop.UIWorkshopRepair.InitControls
 ui_workshop.UIWorkshopRepair.InitControls = function (self, x, y)
 	OldUiWorkshopRepairInitControls(self, x, y)
 	self.btn_maintain = self.xml:Init3tButton("workshop:repair:btn_maintain", self)
-	self:Register(self.btn_maintain, "button_repair")
+	self:Register(self.btn_maintain, "button_maintain")
 end
 
 OldUiWorkshopRepairReset = ui_workshop.UIWorkshopRepair.Reset
@@ -104,8 +134,23 @@ ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
 	end
 
 	if cont == "inventory" then
-		self:CheckToggleMaintainButton() -- This is not yet the part selected. Only the item
+		local obj = self.CC["inventory"]:GetCell_Selected(true)
+		local stashId = self.stashId or (self.owner and self.owner.stashId)
+		local stashObj = stashId and get_object_by_id(stashId) or nil
+
+		--What repair/cleaning kit the gun uses. {<cleaning>,<repairing>}
+		local maintenanceData = tgrUtils.GetMaintenanceData(obj)
+		self.maintenanceItems = tgrUtils.GetMaintenanceItemsCompounded(stashObj, db.actor, maintenanceData)
+
+		self.btn_maintain:Show(IsWeapon(obj))
+		self.btn_maintain:Enable(false)
 	end
+end
+
+OldUiWorkshopRepairInitCallbacks = ui_workshop.UIWorkshopRepair.InitCallBacks
+ui_workshop.UIWorkshopRepair.InitCallBacks = function (self)
+	OldUiWorkshopRepairInitCallbacks(self)
+	self:AddCallback("button_maintain", ui_events.BUTTON_CLICKED, self.MaintainPart, self)
 end
 
 --UIWorkshopRepair Extension. I would like to keep this in a separate file,
@@ -124,3 +169,38 @@ ui_workshop.UIWorkshopRepair.CheckToggleMaintainButton = function (self)
 	self.btn_maintain:Enable(enableBtn)
 end
 
+ui_workshop.UIWorkshopRepair.MaintainPart = function (self)
+	local obj = self.CC["inventory"]:GetCell_Selected(true)
+	local selectedPart = self.selected_btn and self.parts[self.selected_btn]
+
+	if not obj or not selectedPart then
+		return
+	end
+	local parts = item_parts.get_parts_con(obj, nil, true)
+
+	local condToSet = -1
+	local kitToDischarge = nil
+	if tgrUtils.CheckCleanThreshold(selectedPart.con) then
+		--It is a cleaning
+		condToSet = tgrUtils.GetCleanCondToSet(selectedPart.con)
+		kitToDischarge = self.maintenanceItems.cleaning.objWithLeastUses
+	elseif tgrUtils.CheckRepairThreshold(selectedPart.con) then
+		--It is a repairing
+		condToSet = tgrUtils.GetRepairCondToSet(selectedPart.con)
+		kitToDischarge = self.maintenanceItems.repairing.objWithLeastUses
+	end
+
+	if condToSet > 0 then
+		for sec, _ in pairs(parts) do
+			if sec == selectedPart.sec then
+				parts[sec] = condToSet
+				break
+			end
+		end
+	end
+
+	item_parts.set_parts_con(obj:id(), parts)
+	utils_item.discharge(kitToDischarge)
+
+	self:Reset()
+end
