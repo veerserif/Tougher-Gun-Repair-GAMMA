@@ -89,7 +89,7 @@ if (not self.highlight_btn) then
         end
 	end
 
-	if self.maintenanceItems then
+	if self.maintenanceItems and tgrUtils.IsPlayerUsingVice() then
 		local cleanInfo = self.maintenanceItems.cleaning
 		local repairInfo = self.maintenanceItems.repairing
 		local totalUses = 0
@@ -133,7 +133,7 @@ ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
 		return
 	end
 
-	if cont == "inventory" then
+	if cont == "inventory" and tgrUtils.IsPlayerUsingVice() then
 		local obj = self.CC["inventory"]:GetCell_Selected(true)
 		local stashId = self.stashId or (self.owner and self.owner.stashId)
 		local stashObj = stashId and get_object_by_id(stashId) or nil
