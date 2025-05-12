@@ -186,6 +186,7 @@ ui_workshop.UIWorkshopRepair.ListPartScheme = function (self)
 		self.itm_con_def[i] = self.itm_con[i]:GetText()
 	end
 end
+
 --UIWorkshopRepair Extension. I would like to keep this in a separate file,
 --because this injects a completely new function to the workshop repair class,
 --but that would hurt readibility rn.
@@ -212,15 +213,16 @@ ui_workshop.UIWorkshopRepair.MaintainPart = function (self)
 	local parts = item_parts.get_parts_con(obj, nil, true)
 
 	local condToSet = -1
-	local kitToDischarge = nil
+	local maintainInfo = nil
+
 	if tgrUtils.CheckCleanThreshold(selectedPart.con) then
 		--It is a cleaning
+		maintainInfo = self.maintenanceItems.cleaning
 		condToSet = tgrUtils.GetCleanCondToSet(selectedPart.con)
-		kitToDischarge = self.maintenanceItems.cleaning.objWithLeastUses
 	elseif tgrUtils.CheckRepairThreshold(selectedPart.con) then
 		--It is a repairing
+		maintainInfo = self.maintenanceItems.repairing
 		condToSet = tgrUtils.GetRepairCondToSet(selectedPart.con)
-		kitToDischarge = self.maintenanceItems.repairing.objWithLeastUses
 	end
 
 	if condToSet > 0 then
@@ -233,7 +235,26 @@ ui_workshop.UIWorkshopRepair.MaintainPart = function (self)
 	end
 
 	item_parts.set_parts_con(obj:id(), parts)
-	utils_item.discharge(kitToDischarge)
+	utils_item.discharge(maintainInfo.objWithLeastUses)
 
-	self:Reset()
+	maintainInfo.compoundedUses = maintainInfo.compoundedUses -1
+
+	-- If it's at least 1 then we know that we have at least 1 maintenance item use.
+	if self.maintenanceItems.cleaning.compoundedUses + self.maintenanceItems.repairing.compoundedUses >= 1 then
+		CreateTimeEvent("TougherGunRepair", "PartialReset", 0.2, self.PartialReset, self)
+	else
+		self:Reset()
+	end
+end
+
+ui_workshop.UIWorkshopRepair.PartialReset = function (self)
+	local cellContainer = self.CC["inventory"]
+	local selectedCellIndex = cellContainer:GetCell_Selected(false).indx
+
+	OldUiWorkshopRepairReset(self)
+
+	cellContainer:On_Select(selectedCellIndex)
+	self:On_CC_Mouse1("inventory", selectedCellIndex)
+
+	return true
 end
