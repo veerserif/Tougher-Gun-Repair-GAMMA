@@ -1,0 +1,14 @@
+ -- Item condition has to be at least x% to allow cleaning.
+cleaning_threshold = 60
+cleaning_threshold_ceil = 98
+cleaning_charge_restoration = 15
+cleaning_charge_vice_bonus = 5
+
+ -- Item condition has to be at least x% to allow repairing.
+repairing_threshold = 1
+repairing_threshold_ceil = 59 --Should be used only to check if you can reapir the part.
+--A charge always restores half of the max threshold (We are rounding up in a very forgiving way)
+repairing_charge_restoration = math.ceil(repairing_threshold_ceil / 2)
+repairing_charge_vice_bonus = 5
+
+workshop_show_maintain_button_without_vice = false
