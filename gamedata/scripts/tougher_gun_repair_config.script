@@ -1,14 +1,37 @@
- -- Item condition has to be at least x% to allow cleaning.
-cleaning_threshold = 60
+local mcm = tougher_gun_repair_mcm.get_config
+function Get(configSect)
+    if configSect == "repairing_charge_restoration" then
+        return (mcm("overwrite_repairing_charge_restoration") and mcm("repairing_charge_restoration"))
+            or math.ceil(repairing_threshold_ceil / 2)
+    end
+    if configSect == "cleaning_threshold_ceil" then return cleaning_threshold_ceil end
+    if configSect == "repairing_threshold" then return repairing_threshold end
+    if configSect == "repairing_threshold_ceil" then return mcm("cleaning_threshold") - 1 end
+    if configSect == "devDebug" then return devDebug end
+    return mcm(configSect)
+end
+
+devDebug = false
+logToPda = false
+
+--[[
+    Config default values
+--]]
+
+--Not in MCM
 cleaning_threshold_ceil = 98
+repairing_threshold = 1
+workshop_show_maintain_button_without_vice = false
+repairing_threshold_ceil = 59
+
+--In MCM
+cleaning_threshold =  60 --Item condition has to be at least x% to allow cleaning.
 cleaning_charge_restoration = 15
 cleaning_charge_vice_bonus = 5
 
- -- Item condition has to be at least x% to allow repairing.
-repairing_threshold = 1
-repairing_threshold_ceil = 59 --Should be used only to check if you can reapir the part.
---A charge always restores half of the max threshold (We are rounding up in a very forgiving way)
-repairing_charge_restoration = math.ceil(repairing_threshold_ceil / 2)
-repairing_charge_vice_bonus = 5
+repairing_charge_vice_bonus = 5 --Item condition has to be at least x% to allow repairing.
+repairing_charge_restoration = math.ceil(repairing_threshold_ceil / 2) --A charge always restores half of the max threshold (We are rounding up in a very forgiving way)
 
-workshop_show_maintain_button_without_vice = false
+--[[
+    Config default values
+--]]
