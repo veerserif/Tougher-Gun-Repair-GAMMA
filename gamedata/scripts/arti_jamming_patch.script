@@ -155,18 +155,22 @@ zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
 	local kit = db.actor:object(kit_name)
 	local parts = se_load_var(id, nil, "parts")
 	if parts and parts[part] then
-		--SERIOUS: Should refactor to make it prettier + include more info?
+		local condAfterMaintenance = 0
+		local msg = ""
+		local color = utils_xml.get_color("d_green")
+
 		if clean then
-			local condAfterRepair = tgrUtils.GetCleanCondToSet(parts[part])
-			local msg = gc("st_news_cleaned") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
-			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
-			parts[part] = condAfterRepair
+			condAfterMaintenance = tgrUtils.GetCleanCondToSet(parts[part])
+			msg = gc("st_news_cleaned")
 		else
-			local condAfterRepair = tgrUtils.GetRepairCondToSet(parts[part])
-			local msg = gc("st_news_parts_success") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
-			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
-			parts[part] = condAfterRepair
+			condAfterMaintenance = tgrUtils.GetRepairCondToSet(parts[part])
+			msg = gc("st_news_parts_success")
 		end
+
+		msg = msg  .. " " .. ui_item.get_sec_name(part) .. "\\n" .. color .. parts[part] .. color .."% -> " .. condAfterMaintenance .. "%"
+		news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
+		parts[part] = condAfterMaintenance
+
 		utils_item.discharge(kit)
 		-- restore condition too
 		local wpn = level.object_by_id(id)
