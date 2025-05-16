@@ -9,4 +9,9 @@
     <string id="st_tgr_clean_repair">
 		<text>Clean/Repair</text>
 	</string>
+
+	<!-- This basically overwrites arti jamming's "replace" localization so it says "repair" instead-->
+	<string id="st_wpo_replace">
+		<text>repair</text>
+	</string>
 </string_table>
