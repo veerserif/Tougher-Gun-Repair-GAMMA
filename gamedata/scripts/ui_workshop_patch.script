@@ -21,31 +21,17 @@ local clr_list = {
 
 OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
-if (not self.highlight_btn) then
-		return
-	end
+	if (not self.highlight_btn) then
+			return
+		end
 
 	self.selected_btn = self.highlight_btn
 	local sec_part = self.parts[self.selected_btn].sec
 	local con_part = self.parts[self.selected_btn].con
-
-	local cc = self.CC["parts"]
-	local inv, inf, size_t = {},{}, 0
-	db.actor:iterate_inventory(function(owner,obj)
-		local sec = obj:section()
-		if (sec == sec_part) then
-			size_t = size_t + 1
-			inv[size_t] = obj
-			inf[size_t] = math.ceil(obj:condition() * 100)
-		end
-	end)
-	
-	--SERIOUS OPTI  
-	local stash = nil
-	if self.stashId then
-		stash = get_object_by_id(self.stashId)
-
-		stash:iterate_inventory_box(function(owner,obj)
+	if self.maintenanceItems and self.maintenanceItems.repairing.compoundedUses >= 1 then
+		local cc = self.CC["parts"]
+		local inv, inf, size_t = {},{}, 0
+		db.actor:iterate_inventory(function(owner,obj)
 			local sec = obj:section()
 			if (sec == sec_part) then
 				size_t = size_t + 1
@@ -53,49 +39,64 @@ if (not self.highlight_btn) then
 				inf[size_t] = math.ceil(obj:condition() * 100)
 			end
 		end)
-	end
-	--SERIOUS OPTI
+		
+		--SERIOUS OPTI  
+		local stash = nil
+		if self.stashId then
+			stash = get_object_by_id(self.stashId)
 
-	cc:Reinit(inv, inf)
+			stash:iterate_inventory_box(function(owner,obj)
+				local sec = obj:section()
+				if (sec == sec_part) then
+					size_t = size_t + 1
+					inv[size_t] = obj
+					inf[size_t] = math.ceil(obj:condition() * 100)
+				end
+			end)
+		end
+		--SERIOUS OPTI
 
-	local fnt = GetFontSmall()
-	for idx,ci in pairs(self.CC["parts"].cell) do
-		if ci:IsShown() then
-			local con100 = ci.flags.info
-			local con = ci.flags.info / 100
-			local g = clamp(512 * con, 0, 255)
-			local r = clamp(512 * (1- con), 0, 255)
-			ci:Add_CustomText(con100.."%", nil, nil, GetARGB(255,r,g,50), fnt)
+		cc:Reinit(inv, inf)
+
+		local fnt = GetFontSmall()
+		for idx,ci in pairs(self.CC["parts"].cell) do
+			if ci:IsShown() then
+				local con100 = ci.flags.info
+				local con = ci.flags.info / 100
+				local g = clamp(512 * con, 0, 255)
+				local r = clamp(512 * (1- con), 0, 255)
+				ci:Add_CustomText(con100.."%", nil, nil, GetARGB(255,r,g,50), fnt)
+			end
+		end
+
+		-- Hide unusable parts
+		for idx,ci in pairs(cc.cell) do
+			local obj = ci:IsShown() and cc:GetObj(idx)
+
+			if not tgrUtils.IsPlayerUsingVice() and (not obj or arti_jamming.is_barrel(obj:section())) and ci:IsShown() then
+				cc.can_select = false
+				ci:Colorize("red")
+			else
+				cc.can_select = true
+				if obj then
+					if (obj:condition() <= (con_part / 100)) then
+						ci.flags.usable = false
+						ci:Colorize("hide")
+					else
+						ci.flags.usable = true
+						ci:Colorize("def")
+					end
+				end
+			end
 		end
 	end
 
-	-- Hide unusable parts
-	for idx,ci in pairs(cc.cell) do
-		local obj = ci:IsShown() and cc:GetObj(idx)
-
-        if not tgrUtils.IsPlayerUsingVice() and (not obj or arti_jamming.is_barrel(obj:section())) and ci:IsShown() then
-            cc.can_select = false
-            ci:Colorize("red")
-        else
-            cc.can_select = true
-            if obj then
-                if (obj:condition() <= (con_part / 100)) then
-                    ci.flags.usable = false
-                    ci:Colorize("hide")
-                else
-                    ci.flags.usable = true
-                    ci:Colorize("def")
-                end
-            end
-        end
-	end
-
+	--Enables maintenance button if legit. Also resets the part percentage fields (So the +x% disappears)
 	if self.maintenanceItems and tgrUtils.IsPlayerUsingVice() then
 		local cleanInfo = self.maintenanceItems.cleaning
 		local repairInfo = self.maintenanceItems.repairing
 		local maintenanceAmount = 0
 		local totalUses = 0
-
 
 		if (tgrUtils.CheckCleanThreshold(con_part) and cleanInfo.objWithLeastUses) then
 			self.btn_maintain:Enable(true)
@@ -164,7 +165,31 @@ ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
 		local maintenanceData = tgrUtils.GetMaintenanceData(obj)
 		self.maintenanceItems = tgrUtils.GetMaintenanceItemsCompounded(stashObj, db.actor, maintenanceData)
 
-		self.btn_maintain:Show(IsWeapon(obj))
+		--Check if the maintain button should be shown.
+		if IsWeapon(obj) then
+			self.btn_maintain:Show(true)
+			
+			--Enable the clicking of the item parts if the player has at least 1 cleaning kit.
+			if self.maintenanceItems.repairing.compoundedUses <= 0 and self.maintenanceItems.cleaning.compoundedUses >= 1 then
+				utils_xml.set_icon(self.maintenanceItems.cleaning.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
+				self.itm_num_rq:SetText(clr_list["g"] .. tostring(self.maintenanceItems.cleaning.compoundedUses))
+
+				for i=1,6 do
+					local part = self.parts[i]
+					local con = 0
+
+					if part and part.con then
+						con = utils_item.get_cond_static(part.con)
+						if tgrUtils.CheckCleanThreshold(con) then
+							self.itm_btn[i]:Show(true)
+						end
+					end
+				end
+			end
+		else
+			self.btn_maintain:Show(false)
+		end
+
 		self.btn_maintain:Enable(false)
 	end
 end
@@ -175,8 +200,10 @@ ui_workshop.UIWorkshopRepair.InitCallBacks = function (self)
 	self:AddCallback("button_maintain", ui_events.BUTTON_CLICKED, self.MaintainPart, self)
 end
 
-
-
+--[[
+	SERIOUS: When a weapon part is selected there is some contextual info on the condition gain in case of a repair/clean.
+	This method makes sure that the contextual info resets properly and that it only shows for the currently selected part.
+--]]
 OldListPartScheme = ui_workshop.UIWorkshopRepair.ListPartScheme
 ui_workshop.UIWorkshopRepair.ListPartScheme = function (self)
 	OldListPartScheme(self)
@@ -187,22 +214,20 @@ ui_workshop.UIWorkshopRepair.ListPartScheme = function (self)
 	end
 end
 
+--[[
+	SERIOUS: If a part is replaced I actually don't need to check anything I can just disable the button.
+	When another part is selected the state of the button is handled in case the maintenance button should be re-enabled.
+--]]
+OldReplacePart = ui_workshop.UIWorkshopRepair.ReplacePart
+ui_workshop.UIWorkshopRepair.ReplacePart = function (self)
+	OldReplacePart(self)
+
+	self.btn_maintain:Enable(false)
+end
+
 --UIWorkshopRepair Extension. I would like to keep this in a separate file,
 --because this injects a completely new function to the workshop repair class,
 --but that would hurt readibility rn.
-ui_workshop.UIWorkshopRepair.CheckToggleMaintainButton = function (self)
-	if tgrUtils.ShouldDisplayMaintainButton() ~= true then
-		self.btn_maintain:Show(false)
-		self.btn_maintain:Enable(false)
-	end
-
-	local obj = self.CC["inventory"]:GetCell_Selected(true)
-	local enableBtn = obj and IsWeapon(obj) or false
-
-	self.btn_maintain:Show(true)
-	self.btn_maintain:Enable(enableBtn)
-end
-
 ui_workshop.UIWorkshopRepair.MaintainPart = function (self)
 	local obj = self.CC["inventory"]:GetCell_Selected(true)
 	local selectedPart = self.selected_btn and self.parts[self.selected_btn]
@@ -239,10 +264,11 @@ ui_workshop.UIWorkshopRepair.MaintainPart = function (self)
 
 	maintainInfo.compoundedUses = maintainInfo.compoundedUses -1
 
-	-- If it's at least 1 then we know that we have at least 1 maintenance item use.
+	-- If it's at least 1 then we know that we have at least 1 maintenance item use left.
 	if self.maintenanceItems.cleaning.compoundedUses + self.maintenanceItems.repairing.compoundedUses >= 1 then
 		CreateTimeEvent("TougherGunRepair", "PartialReset", 0.2, self.PartialReset, self)
 	else
+		self.itm_num_rq:SetText(clr_list["r"] .. 0)
 		self:Reset()
 	end
 end
