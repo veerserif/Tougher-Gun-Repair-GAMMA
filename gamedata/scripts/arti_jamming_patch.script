@@ -155,18 +155,22 @@ zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
 	local kit = db.actor:object(kit_name)
 	local parts = se_load_var(id, nil, "parts")
 	if parts and parts[part] then
-		--SERIOUS: Should refactor to make it prettier + include more info?
+		local condAfterMaintenance = 0
+		local msg = ""
+		local color = utils_xml.get_color("d_green")
+
 		if clean then
-			local condAfterRepair = tgrUtils.GetCleanCondToSet(parts[part])
-			local msg = gc("st_news_cleaned") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
-			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
-			parts[part] = condAfterRepair
+			condAfterMaintenance = tgrUtils.GetCleanCondToSet(parts[part])
+			msg = gc("st_news_cleaned")
 		else
-			local condAfterRepair = tgrUtils.GetRepairCondToSet(parts[part])
-			local msg = gc("st_news_parts_success") .. " " .. ui_item.get_sec_name(part) .. "\\n" .. parts[part] .. "%" .. " -> " .. condAfterRepair .. "%"
-			news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
-			parts[part] = condAfterRepair
+			condAfterMaintenance = tgrUtils.GetRepairCondToSet(parts[part])
+			msg = gc("st_news_parts_success")
 		end
+
+		msg = msg  .. " " .. ui_item.get_sec_name(part) .. "\\n" .. color .. parts[part] .. color .."% -> " .. condAfterMaintenance .. "%"
+		news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
+		parts[part] = condAfterMaintenance
+
 		utils_item.discharge(kit)
 		-- restore condition too
 		local wpn = level.object_by_id(id)
@@ -178,4 +182,36 @@ zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
 
 	GetActorMenu():UpdateItems()
 	GetActorMenu():UpdateSlots()
+end
+
+local good_breakpoint = 60
+OldWeaponEvalParts = zzzz_arti_jamming_repairs.weapon_eval_parts
+zzzz_arti_jamming_repairs.weapon_eval_parts = function (wpn)
+	local sec = ini_sys:r_string_ex(wpn:section(),"parent_section") or wpn:section()
+    local parts = itms_manager.ini_parts:r_string_ex("con_parts_list", sec)
+	parts = str_explode(parts,",")
+	local base_chance = tonumber(get_config("newdropschance")) or 50
+	local adjusted = base_chance * wpn:condition()
+	local parts_data = {}
+	parts_data[sec] = math.ceil(wpn:condition() * 100)
+	for i=1,#parts do
+		local part = parts[i]
+		local final_chance = math.ceil(adjusted)-- * parts_info[part].weight)
+		print_dbg("Part %s has a %s chance to be good.", part, final_chance)
+
+		if wpn:condition() > 0.9 then
+			print_dbg("Short circuiting")
+			parts_data[part] = math.random(90, 99)
+		elseif math.random(100) < final_chance then
+			parts_data[part] = math.random(good_breakpoint, 99)
+		else
+			parts_data[part] = math.random(1, good_breakpoint - 8)
+		end
+
+		--SERIOUS: Barrels never spawn with a readily usable barrel.
+		if string.find(part, "barrel") then
+			parts_data[part] = clamp(parts_data[part], 1, tgrCfg.Get("repairing_threshold_ceil"))
+		end
+    end
+	se_save_var( wpn:id(), wpn:name(), "parts", parts_data )
 end

@@ -10,8 +10,14 @@
 		<text>Clean/Repair</text>
 	</string>
 
-	<!-- This basically overwrites arti jamming's "replace" localization so it says "repair" instead-->
+	<!-- Overwrites for `Arti jamming` stuff -->
+	<!-- "replace" -->
 	<string id="st_wpo_replace">
 		<text>repair</text>
+	</string>
+
+	<!-- "Successfully replaced part: " -->
+	<string id="st_news_parts_success">
+		<text>Repaired part:</text>
 	</string>
 </string_table>
