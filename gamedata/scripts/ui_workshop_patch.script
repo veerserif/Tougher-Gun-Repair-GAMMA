@@ -101,13 +101,13 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 		if (tgrUtils.CheckCleanThreshold(con_part) and cleanInfo.objWithLeastUses) then
 			self.btn_maintain:Enable(true)
 			totalUses = cleanInfo.compoundedUses
-			maintenanceAmount = tgrCfg.cleaning_charge_restoration + tgrCfg.cleaning_charge_vice_bonus
+			maintenanceAmount = tgrCfg.Get("cleaning_charge_restoration") + tgrCfg.Get("cleaning_charge_vice_bonus")
 
 			utils_xml.set_icon(cleanInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		elseif tgrUtils.CheckRepairThreshold(con_part) and repairInfo.objWithLeastUses then
 			self.btn_maintain:Enable(true)
 			totalUses = repairInfo.compoundedUses
-			maintenanceAmount = tgrCfg.repairing_charge_restoration + tgrCfg.repairing_charge_vice_bonus
+			maintenanceAmount = tgrCfg.Get("repairing_charge_restoration") + tgrCfg.Get("repairing_charge_vice_bonus")
 
 			utils_xml.set_icon(repairInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		end

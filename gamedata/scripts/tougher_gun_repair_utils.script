@@ -2,24 +2,20 @@ local tgrCfg = tougher_gun_repair_config
 isUsingVice = false
 isWorkshopOptimizationActive = false
 
-function on_game_start()
-    if serious_workshop_utils then isWorkshopOptimizationActive = true end
-end
-
 function CheckRepairThreshold(itemCondition)
     if not itemCondition then return false end
 
     return IsBetween(itemCondition,
-    tgrCfg.repairing_threshold,
-    tgrCfg.repairing_threshold_ceil)
+    tgrCfg.Get("repairing_threshold"),
+    tgrCfg.Get("repairing_threshold_ceil"))
 end
 
 function CheckCleanThreshold(itemCondition)
     if not itemCondition then return false end
 
     return IsBetween(itemCondition,
-    tgrCfg.cleaning_threshold,
-    tgrCfg.cleaning_threshold_ceil)
+    tgrCfg.Get("cleaning_threshold"),
+    tgrCfg.Get("cleaning_threshold_ceil"))
 end
 
 function IsBetween(num, min, max)
@@ -30,28 +26,28 @@ function IsBetween(num, min, max)
 end
 
 function GetRepairCondToSet(itemCondition)
-    if IsPlayerUsingVice() then return clamp(itemCondition + tgrCfg.repairing_charge_restoration, 1, 100) end
+    if IsPlayerUsingVice() then return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, 100) end
 
     --SERIOUS: Yes I deliberately use tgrCfg.cleaning_threshold as a max value.
     --This way you can't softlock yourself to: Having a 59% part that you can't clean yet, but can't reapir further either.
-    return clamp(itemCondition + tgrCfg.repairing_charge_restoration, 1, tgrCfg.cleaning_threshold)
+    return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, tgrCfg.Get("cleaning_threshold"))
 end
 
 function GetCleanCondToSet(itemCondition)
     if IsPlayerUsingVice() then
         return clamp(itemCondition
-            + tgrCfg.cleaning_charge_restoration
-            + tgrCfg.cleaning_charge_vice_bonus, 1, 100)
+            + tgrCfg.Get("cleaning_charge_restoration")
+            + tgrCfg.Get("cleaning_charge_vice_bonus"), 1, 100)
     end
 
-    return clamp(itemCondition + tgrCfg.cleaning_charge_restoration, 1, 100)
+    return clamp(itemCondition + tgrCfg.Get("cleaning_charge_restoration"), 1, 100)
 end
 
 --[[
     SERIOUS: This is actually never used. I'll leave it here in case we find a use case for it later.
 --]]
 function ShouldDisplayMaintainButton()
-    if tgrCfg.workshop_show_maintain_button_without_vice then return true end
+    if tgrCfg.Get("workshop_show_maintain_button_without_vice") then return true end
 
     return IsPlayerUsingVice()
 end
@@ -157,4 +153,57 @@ function GetMaintenanceData(obj)
 	local toolkit_sec = toolkit_map[repair_sec] or "none"
 
 	return toolkit_sec
+end
+
+
+local function LogConfigs(key)
+    Log("cleaning_threshold: %s", Get("cleaning_threshold"))
+    Log("cleaning_charge_restoration: %s", Get("cleaning_charge_restoration"))
+    Log("cleaning_charge_vice_bonus: %s", Get("cleaning_charge_vice_bonus"))
+    Log("repairing_charge_restoration: %s", Get("repairing_charge_restoration"))
+    Log("repairing_charge_vice_bonus: %s", Get("repairing_charge_vice_bonus"))
+    Log("cleaning_threshold_ceil: %s", Get("cleaning_threshold_ceil"))
+    Log("repairing_threshold: %s", Get("repairing_threshold"))
+    Log("repairing_threshold_ceil: %s", Get("repairing_threshold_ceil"))
+end
+
+local function RandomPartsCondForInvWeapons()
+    Log("Randomizing weapon part conditions", true)
+
+    db.actor:iterate_inventory(function(_, item)
+        if not IsMelee(item) and IsWeapon(item) then
+            local parts = item_parts.get_parts_con(item)
+
+            for name, _ in pairs(parts) do
+                parts[name] = math.random(1, 100)
+            end
+
+            item_parts.set_parts_con(item:id(), parts)
+        end
+    end, nil)
+end
+
+local function OnKeyPressCallbacks(key)
+    if key == DIK_keys.DIK_X then LogConfigs() end
+    if key == DIK_keys.DIK_C then RandomPartsCondForInvWeapons() end
+end
+
+function on_game_start()
+    if serious_workshop_utils then isWorkshopOptimizationActive = true end
+
+    if tgrCfg.Get("devDebug") then
+        RegisterScriptCallback("on_key_press", OnKeyPressCallbacks)
+    end
+end
+
+function Log(msg, ...)
+    printf(msg, ...)
+
+    if tgrCfg.Get("logToPda") then
+        news_manager.send_tip(db.actor, string.format(msg, ...), nil, "ui_icon_news_trx_communication", 6000)
+    end
+
+    if FileLogger then
+        FileLogger.log(msg, ...)
+    end
 end

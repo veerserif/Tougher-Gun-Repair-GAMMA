@@ -1,0 +1,30 @@
+function get_config(key)
+  if ui_mcm then return ui_mcm.get("tougher_gun_repair/"..key) else return defaults[key] end
+end
+
+function on_mcm_load()
+    op = {
+      id = "tougher_gun_repair",
+      sh = true,
+      gr =
+        {  -- options tree goes here
+          { id = "sld", type = "slide", text = "ui_mcm_tgr_sld_text", link = "ui_options_slider_gameplay_diff", size = {512, 50}, spacing = 20},
+
+          --Cleaning
+          { id = "cleaning_title", type= "title", text= "ui_mm_header_cleaning", align= "l", clr= {255,200,200,200}},
+          { id = "cleaning_threshold",  type = "track", val = 2, min = 2, max = 98, def = 60, step= 1, size = {512, 50}, spacing = 20},
+          { id = "cleaning_charge_restoration",  type = "track", val = 2, min = 1, max = 98, def = 15, step= 1, size = {512, 50}, spacing = 20},
+          { id = "cleaning_charge_vice_bonus",  type = "track", val = 2, min = 0, max = 98, def = 5, step= 1, size = {512, 50}, spacing = 20},
+
+          { id = "divider", type= "line"},
+
+          --Repairing
+          { id = "repairing_title", type= "title", text= "ui_mm_header_repairing", align= "l", clr= {255,200,200,200}},
+          { id = "repairing_charge_restoration_help", type = "desc", clr = {200, 255, 200, 200}, text="ui_mcm_tougher_gun_repair_overwrite_repairing_charge_restoration_help"},
+          { id = "overwrite_repairing_charge_restoration",  type = "check", val = 1, def = false},
+          { id = "repairing_charge_restoration",  type = "track", val = 2, min = 1, max = 98, def = 30, step= 1, size = {512, 50}, spacing = 20},
+          { id = "repairing_charge_vice_bonus",  type = "track", val = 2, min = 0, max = 98, def = 5, step= 1, size = {512, 50}, spacing = 20},
+        }
+      }
+    return op
+  end
