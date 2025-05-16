@@ -47,6 +47,9 @@ function GetCleanCondToSet(itemCondition)
     return clamp(itemCondition + tgrCfg.cleaning_charge_restoration, 1, 100)
 end
 
+--[[
+    SERIOUS: This is actually never used. I'll leave it here in case we find a use case for it later.
+--]]
 function ShouldDisplayMaintainButton()
     if tgrCfg.workshop_show_maintain_button_without_vice then return true end
 
