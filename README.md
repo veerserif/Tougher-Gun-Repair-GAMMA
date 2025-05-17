@@ -14,18 +14,18 @@ This mod is designed to make gun repair more challenging, requiring more money a
 
 ### Cleaning kits and repair kits
 - Cleaning kits now **only add +15%** to parts, and can only be used if the part is over a configurable threshold (60% by default)
-- Repair kits now **only add +20%** to parts, and can only be used on parts from 0 - 60%
+- Repair kits now **only add +20%** to parts, and can only be used on parts from 1 - 60%
+  - This means you can't use a repair kit to replace missing parts any more - you must find a part from somewhere, first
   - If you use the repair kit to clean a gun part, **outside of a workbench**, it **caps condition gain to 60%**
-- Using a repair kit charge to clean a gun part (as in, right click the gun ==> "Replace part") will always add half of the repair threshold, rounded up (+30% by default)
+- Using a repair kit charge to clean a gun part (as in, right click the gun → "Repair part") will always add half of the repair threshold, rounded up (+30% by default)
 
 ### Workbenches
-- Cleaning kits and repair kits gain a +5% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add + 20% and repair kits will add +25%)
+- Cleaning kits and repair kits gain a +5% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add +20% and repair kits will add +25%)
 - Barrels can only be replaced at an **actual workbench**, not if you just double-click or Use a set of tools out in the field
 
 ### Other changes
 - Weapons **never spawn** with a usable barrel. ALL guns require some level of maintenance in order to get them fully working.
 - Hidden gun condition is now locked to 95% - this should mean that your guns jam far less frequently once fully fixed, and hopefully sidesteps issues with Nimble or other gun trade quests
-- 
 
 ## How to install
 - Download the mod from the **releases** tab. Do not extract.
