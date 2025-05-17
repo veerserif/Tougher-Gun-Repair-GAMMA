@@ -208,9 +208,20 @@ zzzz_arti_jamming_repairs.weapon_eval_parts = function (wpn)
 			parts_data[part] = math.random(1, good_breakpoint - 8)
 		end
 
-		--SERIOUS: Barrels never spawn with a readily usable barrel.
+		--SERIOUS: Weapons never spawn with a readily usable barrel.
 		if string.find(part, "barrel") then
-			parts_data[part] = clamp(parts_data[part], 1, tgrCfg.Get("repairing_threshold_ceil"))
+			local parent = wpn:parent()
+			local overwritePartCond = false
+
+			if parent and (not IsStalker(parent) or not parent:alive()) then
+				overwritePartCond = true
+			elseif not parent then
+				overwritePartCond = true
+			end
+
+			if overwritePartCond then
+				parts_data[part] = clamp(parts_data[part], 1, tgrCfg.Get("repairing_threshold_ceil"))
+			end
 		end
     end
 	se_save_var( wpn:id(), wpn:name(), "parts", parts_data )
