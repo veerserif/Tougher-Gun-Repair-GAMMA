@@ -155,8 +155,39 @@ function GetMaintenanceData(obj)
 	return toolkit_sec
 end
 
+--[[
+    SERIOUS - Algorithm explanation:
 
-local function LogConfigs(key)
+    Let's assume these values are configured:
+
+    local barrelConditionBonusStartingLvl = 10
+    local barrelConditionBonusInterval = 5
+    local barrelConditionBonusCoeff = 10
+
+    At scav level 10 the max barrel condition for any looted weapon is: 
+    Max repair threshold + 10% 
+    After level 10 each +5 scav level adds +10%
+
+    This is why I do "math.floor(scavenging_skill / 5) * 10 - 10"
+    the -10 is to enforce the strict +10% bonus once for reaching level 10 and the +10% for each additional 5 scav levels.
+--]]
+function CalculateMaxPossibleBarrelDropCond()
+    local scavenging_skill = haru_skills.skills_levels["scavenging"].current_level
+    local maxBarrelCond = tgrCfg.Get("repairing_threshold_ceil")
+
+    local skillsCompatibility = tgrCfg.Get("skills_compatibility")
+    local barrelConditionBonusStartingLvl = tgrCfg.Get("barrel_condition_bonus_starting_lvl")
+    local barrelConditionBonusInterval = tgrCfg.Get("barrel_condition_bonus_interval")
+    local barrelConditionBonusCoeff = tgrCfg.Get("barrel_condition_bonus_coeff")
+
+    if scavenging_skill >= barrelConditionBonusStartingLvl and skillsCompatibility then
+        maxBarrelCond = clamp(maxBarrelCond + (math.floor(scavenging_skill / barrelConditionBonusInterval) * barrelConditionBonusCoeff - barrelConditionBonusCoeff), 1, 100)
+    end
+
+    return maxBarrelCond
+end
+
+local function LogConfigs()
     Log("cleaning_threshold: %s", Get("cleaning_threshold"))
     Log("cleaning_charge_restoration: %s", Get("cleaning_charge_restoration"))
     Log("cleaning_charge_vice_bonus: %s", Get("cleaning_charge_vice_bonus"))

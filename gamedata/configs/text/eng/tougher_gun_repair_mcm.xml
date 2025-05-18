@@ -71,17 +71,16 @@
         <text>Vice/Workshop bonus</text>
     </string>
 
+    <!-- OTHER -->
+    <string id="ui_mm_header_other">
+        <text>Other</text>
+    </string>
 
+    <string id="ui_mcm_tougher_gun_repair_skills_compatibility_desc">
+        <text>Unchecking this will result in the max lootable barrel condition to not scale with your scavenging level.</text>
+    </string>
 
-
-    <string id="ui_mcm_serious_collection_tracker_update_data_structure_desc">
-        <text>
-        Usage: Load a save then toggle this option to true. 
-        This will perform an update on the data of the PDA inventory entries.\n
-        \nNote: Run this whenever you update the mod.
-        \n• This WILL NOT delete your entries.
-        \n• You need to be on the same map where the registered items are physically located.
-        \n• If you have them scattered on more maps then you have to do this on each map.
-        </text>
+    <string id="ui_mcm_tougher_gun_repair_skills_compatibility">
+        <text>Skills compatibility</text>
     </string>
 </string_table>
