@@ -24,7 +24,7 @@ This mod is designed to make gun repair more challenging, requiring more money a
 - Barrels can only be replaced at an **actual workbench**, not if you just double-click or Use a set of tools out in the field
 
 ### Other changes
-- Weapons **never spawn** with a usable barrel. ALL guns require some level of maintenance in order to get them fully working.
+- Initially, no weapon spawns with a usable barrel. This changes as your Scavenging level increases (can be configured in MCM). ALL guns require some level of maintenance in order to get them fully working.
 - Hidden gun condition is now locked to 95% - this should mean that your guns jam far less frequently once fully fixed, and hopefully sidesteps issues with Nimble or other gun trade quests
 
 ## How to install
