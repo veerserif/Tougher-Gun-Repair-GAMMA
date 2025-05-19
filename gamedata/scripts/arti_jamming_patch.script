@@ -220,7 +220,7 @@ zzzz_arti_jamming_repairs.weapon_eval_parts = function (wpn)
 			end
 
 			if overwritePartCond then
-				parts_data[part] = clamp(parts_data[part], 1, tgrCfg.Get("repairing_threshold_ceil"))
+				parts_data[part] = clamp(parts_data[part], 1, tgrUtils.CalculateMaxPossibleBarrelDropCond())
 			end
 		end
     end
