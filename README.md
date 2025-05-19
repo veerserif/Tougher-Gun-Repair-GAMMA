@@ -28,20 +28,20 @@ This mod is designed to make gun repair more challenging, requiring more money a
 - Hidden gun condition is now locked to 95% - this should mean that your guns jam far less frequently once fully fixed, and hopefully sidesteps issues with Nimble or other gun trade quests
 
 ## How to install
-- Download the mod from the **releases** tab. Do not extract.
+- Download the mod from the [**releases** tab](https://github.com/veerserif/Tougher-Gun-Repair-GAMMA/releases). Do not extract.
 - Install it with Mod Organizer 2:
   - In Mod Organizer 2, go to File -> Install mod...
   - Select this mod
   - Click "OK" on the install popup. The mod should appear at the end of your modlist.
   - Enable the mod.
 
-(Include notes on load order and compatibility here)
+### Compatibility and requirements
 
-### Release notes
-
-(Link to the Releases tab here)
-
-- Test release: "bare minimum" version for testing.
+- This mod **requires** GAMMA Guns Have No Condition. It must overwrite files from G.A.M.M.A. Guns Have No Condition, G.A.M.M.A Vices are Free, and G.A.M.M.A. ZCP 1.4 Balanced Spawns. 
+- This mod is likely incompatible with other mods that change how weapon maintenance works. Below are some mods that we know are incompatible; this list is not exhaustive.
+  -  [Weapon Maintain Features 'n fixes](https://github.com/Bence7661/Serious_Weapon_Maintain_Features)
+- This mod was designed around unmodified GAMMA 0.9.3, and will cause strange results if you try to put this on vanilla Anomaly.
+- We recommend, but don't currently require, the [Workshop Optimization](https://github.com/Bence7661/Serious_Workshop_Optimization) mod.
 
 ## Credits
 
