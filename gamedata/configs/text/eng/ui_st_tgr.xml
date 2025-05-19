@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<string_table>
+	<string id="st_tgr_clean">
+		<text>Clean</text>
+	</string>
+    <string id="st_tgr_repair">
+		<text>Repair</text>
+	</string>
+    <string id="st_tgr_clean_repair">
+		<text>Clean/Repair</text>
+	</string>
+
+	<!-- Overwrites for `Arti jamming` stuff -->
+	<!-- "replace" -->
+	<string id="st_wpo_replace">
+		<text>repair</text>
+	</string>
+
+	<!-- "Successfully replaced part: " -->
+	<string id="st_news_parts_success">
+		<text>Repaired part:</text>
+	</string>
+</string_table>

@@ -1,0 +1,228 @@
+--#region Tougher Gun repairs
+-- Add a cleaning threshold variable. TO-DO: make it MCM configurable?
+local tgrCfg = tougher_gun_repair_config
+local tgrUtils = tougher_gun_repair_utils
+--#endregion
+
+quality_map = {
+	[0] = "broken",
+	[1] = "damaged",
+	[2] = "worn",
+	[3] = "dirty",
+}
+
+unique_mapping = {
+	["prt_w_gas_tube_9"] = "extractor",
+	["prt_w_gas_tube_10"] = "extractor",
+	["prt_w_gas_tube_8"] = "ejector",
+	["prt_w_gas_tube_2"] = "pump",
+	["prt_w_bolt_11"] = "hammers",
+	["prt_w_bolt_12"] = "hammers",
+	["prt_w_bolt_carrier_8"] = "chock",
+	["prt_w_bolt_carrier_9"] = "chock",
+}
+
+name_mapping = {
+	"spring",
+	"bolt_carrier",
+	"bolt",
+	"gas_tube",
+	"barrel",
+	"trigger"
+}
+
+local toolkit_map = {
+	["pistol"] 		= {"cleaning_kit_p","toolkit_p"},
+	["shotgun"] 	= {"cleaning_kit_s","toolkit_s"},
+	["rifle_5"] 	= {"cleaning_kit_r5","toolkit_r5"},
+	["rifle_7"] 	= {"cleaning_kit_r7","toolkit_r7"},
+}
+
+local string_find         = string.find
+local math_ceil           = math.ceil
+local math_floor          = math.floor
+local gc                  = game.translate_string
+
+has_parts = arti_jamming.has_parts
+is_part = arti_jamming.is_part
+print_dbg = arti_jamming.print_dbg
+print_ws = ui_workshop.print_ws
+get_config = a_arti_jamming_mcm.get_config
+current_id = arti_jamming.current_id
+reset_cgd = arti_jamming.reset_cgd
+
+local clr_r  = utils_xml.get_color("d_red")
+local clr_o  = utils_xml.get_color("d_orange")
+local clr_y  = utils_xml.get_color("yellow")
+local clr_g  = utils_xml.get_color("d_green")
+local clr_p  = utils_xml.get_color("d_purple")
+local clr_w	 = utils_xml.get_color("d_white")
+
+OldProcessPart = zzzz_arti_jamming_repairs.process_part
+zzzz_arti_jamming_repairs.process_part = function(name, condition)
+	local severity = condition == -1 and "missing" or math.floor(condition / 20)
+	local clr = clr_r
+	if condition >= tgrCfg.Get("cleaning_threshold") then clr = clr_g -- changed to use cleaning_threshold
+	elseif condition > 20 then clr = clr_o 
+	elseif condition == -1 then clr = clr_r end
+	local part_name = ""
+	if unique_mapping[name] then
+		part_name = unique_mapping[name]
+	else
+		if not string_find(name, "prt_w") then return "" end
+		local i = 1
+		while part_name == "" and i < 7 do
+			-- print_dbg("it %s, name %s", i, name)
+			if string_find(name, name_mapping[i]) then
+				part_name = name_mapping[i]
+			end
+			i = i + 1
+		end
+	end
+	print_dbg("part %s, category %s, sev %s", name, part_name, severity)
+	
+	if part_name ~= "barrel" then
+		return " " .. clr_w .. gc("st_dot") .. " " .. clr .. gc("st_damage_"..severity) .. " " .. gc("st_name_"..part_name) .. "\\n"
+	end
+	
+	condition = condition / 100
+	condition = ( 130 - ( 1.12 * condition ) ) * ( condition * 1.12 ) / 100
+	condition = tonumber(string.format("%.0f", condition * 100))
+	condition = math.min(condition, 100)
+	
+	return " " .. clr_w .. gc("st_dot") .. " " .. clr .. gc("st_damage_"..severity) .. " " .. gc("st_name_"..part_name) .. clr_w .. " (" .. condition .. "% DMG and AP)" .. "\\n"
+end
+
+OldHasSuitableKit = zzzz_arti_jamming_repairs.has_suitable_kit
+zzzz_arti_jamming_repairs.has_suitable_kit = function(obj)
+	local repair_sec = SYS_GetParam(0, obj:section(), "repair_type") or "none"
+	local toolkit_sec = toolkit_map[repair_sec] or "none"
+	print_dbg("checking suitability for %s, repair %s", obj:section(), repair_sec)
+	local has_clean = db.actor:object(toolkit_sec[1])
+	local has_repair = db.actor:object(toolkit_sec[2])
+	if not (has_clean or has_repair) then return false end
+	local parts = item_parts.get_parts_con(obj)
+	local allow = false
+	for k,v in pairs(parts) do
+		if is_part(k) then
+			-- allow for repair. VEER TO-DO: remove this or contrain to "in workshop UI only"
+			if tgrUtils.CheckRepairThreshold(v) and has_repair then
+				allow = true
+			-- allow for clean
+			elseif tgrUtils.CheckCleanThreshold(v) and has_clean then -- use cleaning_threshold
+				allow = true
+			end
+		end
+	end
+	return allow
+end
+
+--SERIOUS: Need to patch differently to stay compatible with SERIOUS Weapon Maintain Features. 
+--(I just mark these veer, so later I can produce the compatibility patch easier)
+OldInitMaintenanceMenu = zzzz_arti_jamming_repairs.init_maintenance_menu
+zzzz_arti_jamming_repairs.init_maintenance_menu = function(obj)
+	local context_str = {}
+	local context_action = {}
+	local context_params = {}
+
+	local parts = item_parts.get_parts_con(obj)
+	local clean_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, true)
+	local repair_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, false)
+	for k,v in pairs(parts) do
+		if is_part(k) then
+			if tgrUtils.CheckRepairThreshold(v) and repair_kit then
+				table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, false))
+				table.insert(context_action,  "replace_part")
+				table.insert(context_params, {obj:id(), k, repair_kit:section(), false})
+
+			elseif tgrUtils.CheckCleanThreshold(v) then
+				if clean_kit then
+					table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, true))
+					table.insert(context_action,  "clean_part")
+					table.insert(context_params, {obj:id(), k, clean_kit:section(), true})
+				end
+			end
+		end
+	end
+	if not maint_gui then maint_gui = utils_ui_custom.UICellPropertiesCustom(zzzz_arti_jamming_repairs.replace_part) end
+	maint_gui:Reset(GetCursorPosition(), context_action, context_str, context_params)
+	ui_inventory.GUI:PlaySND(sound_object([[interface\inv_properties_2]]))
+end
+
+OldReplacePart = zzzz_arti_jamming_repairs.replace_part
+zzzz_arti_jamming_repairs.replace_part = function(id, part, kit_name, clean)
+	print_dbg("replacing part %s on item %s", part, id)
+	local kit = db.actor:object(kit_name)
+	local parts = se_load_var(id, nil, "parts")
+	if parts and parts[part] then
+		local condAfterMaintenance = 0
+		local msg = ""
+		local color = utils_xml.get_color("d_green")
+
+		if clean then
+			condAfterMaintenance = tgrUtils.GetCleanCondToSet(parts[part])
+			msg = gc("st_news_cleaned")
+		else
+			condAfterMaintenance = tgrUtils.GetRepairCondToSet(parts[part])
+			msg = gc("st_news_parts_success")
+		end
+
+		msg = msg  .. " " .. ui_item.get_sec_name(part) .. "\\n" .. color .. parts[part] .. color .."% -> " .. condAfterMaintenance .. "%"
+		news_manager.send_tip(db.actor, msg, nil, "swiss_knife", 6000)
+		parts[part] = condAfterMaintenance
+
+		utils_item.discharge(kit)
+		-- restore condition too
+		local wpn = level.object_by_id(id)
+		wpn:set_condition( clamp(wpn:condition() + 0.1, 0, 0.999) )
+		if id == current_id() then
+			reset_cgd()
+		end
+	end
+
+	GetActorMenu():UpdateItems()
+	GetActorMenu():UpdateSlots()
+end
+
+local good_breakpoint = 60
+OldWeaponEvalParts = zzzz_arti_jamming_repairs.weapon_eval_parts
+zzzz_arti_jamming_repairs.weapon_eval_parts = function (wpn)
+	local sec = ini_sys:r_string_ex(wpn:section(),"parent_section") or wpn:section()
+    local parts = itms_manager.ini_parts:r_string_ex("con_parts_list", sec)
+	parts = str_explode(parts,",")
+	local base_chance = tonumber(get_config("newdropschance")) or 50
+	local adjusted = base_chance * wpn:condition()
+	local parts_data = {}
+	parts_data[sec] = math.ceil(wpn:condition() * 100)
+	for i=1,#parts do
+		local part = parts[i]
+		local final_chance = math.ceil(adjusted)-- * parts_info[part].weight)
+		print_dbg("Part %s has a %s chance to be good.", part, final_chance)
+
+		if wpn:condition() > 0.9 then
+			print_dbg("Short circuiting")
+			parts_data[part] = math.random(90, 99)
+		elseif math.random(100) < final_chance then
+			parts_data[part] = math.random(good_breakpoint, 99)
+		else
+			parts_data[part] = math.random(1, good_breakpoint - 8)
+		end
+
+		--SERIOUS: Weapons never spawn with a readily usable barrel.
+		if string.find(part, "barrel") then
+			local parent = wpn:parent()
+			local overwritePartCond = false
+
+			if parent and (not IsStalker(parent) or not parent:alive()) then
+				overwritePartCond = true
+			elseif not parent then
+				overwritePartCond = true
+			end
+
+			if overwritePartCond then
+				parts_data[part] = clamp(parts_data[part], 1, tgrUtils.CalculateMaxPossibleBarrelDropCond())
+			end
+		end
+    end
+	se_save_var( wpn:id(), wpn:name(), "parts", parts_data )
+end

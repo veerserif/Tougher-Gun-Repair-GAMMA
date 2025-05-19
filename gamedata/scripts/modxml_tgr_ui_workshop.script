@@ -1,0 +1,26 @@
+function on_xml_read()
+    RegisterScriptCallback("on_xml_read", function(xml_file_name, xml_obj)
+        -- XML file i want to change
+        local xml_to_change_16 = [[ui\ui_workshop_16.xml]]
+        local xml_to_change = [[ui\ui_workshop.xml]]
+
+        -- Check if its the file i want to change
+        if xml_file_name == xml_to_change or xml_file_name == xml_to_change_16 then
+            -- Here is my code to change XML
+            local res = xml_obj:query("workshop > repair")
+            local element = res[1]
+
+            if element then
+                local xmlToInject =
+                [[
+                    <btn_maintain x="649" y="470" width="101" height="26">
+                        <text r="150" g="150" b="150" font="letterica16" align="c">st_tgr_clean_repair</text>
+                        <texture>ui_button_ordinary</texture>
+                    </btn_maintain>
+                ]]
+
+                xml_obj:insertFromXMLString(xmlToInject, element, #element.kids)
+            end
+        end
+    end)
+end

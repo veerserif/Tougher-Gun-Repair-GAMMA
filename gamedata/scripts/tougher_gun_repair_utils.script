@@ -1,0 +1,246 @@
+local tgrCfg = tougher_gun_repair_config
+isUsingVice = false
+isWorkshopOptimizationActive = false
+
+function CheckRepairThreshold(itemCondition)
+    if not itemCondition then return false end
+
+    return IsBetween(itemCondition,
+    tgrCfg.Get("repairing_threshold"),
+    tgrCfg.Get("repairing_threshold_ceil"))
+end
+
+function CheckCleanThreshold(itemCondition)
+    if not itemCondition then return false end
+
+    return IsBetween(itemCondition,
+    tgrCfg.Get("cleaning_threshold"),
+    tgrCfg.Get("cleaning_threshold_ceil"))
+end
+
+function IsBetween(num, min, max)
+    if not num then return false end
+    if not min then return false end
+    if not max then return false end
+    if num >= min and num <= max then return true end
+end
+
+function GetRepairCondToSet(itemCondition)
+    if IsPlayerUsingVice() then return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, 100) end
+
+    --SERIOUS: Yes I deliberately use tgrCfg.cleaning_threshold as a max value.
+    --This way you can't softlock yourself to: Having a 59% part that you can't clean yet, but can't reapir further either.
+    return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, tgrCfg.Get("cleaning_threshold"))
+end
+
+function GetCleanCondToSet(itemCondition)
+    if IsPlayerUsingVice() then
+        return clamp(itemCondition
+            + tgrCfg.Get("cleaning_charge_restoration")
+            + tgrCfg.Get("cleaning_charge_vice_bonus"), 1, 100)
+    end
+
+    return clamp(itemCondition + tgrCfg.Get("cleaning_charge_restoration"), 1, 100)
+end
+
+--[[
+    SERIOUS: This is actually never used. I'll leave it here in case we find a use case for it later.
+--]]
+function ShouldDisplayMaintainButton()
+    if tgrCfg.Get("workshop_show_maintain_button_without_vice") then return true end
+
+    return IsPlayerUsingVice()
+end
+
+--Portable workshops count too
+--This function is pretty redundent atm. We should still keep it. 
+--Will make it easier to inject extra logic in the future if need be. (Like Portable workshops and Vices giving different bonuses)
+function IsPlayerUsingVice()
+    return isUsingVice
+end
+
+--[[
+    THIS IS SUBOPTIMAL RIGHT NOW
+    This should happen once when the workshop/vice is opened and then managed in memory.
+    It is probably fine like this however. Optimizing this would be more complex and shouldn't be done prematurely.
+
+    Collects all repair items that are found in `maintenanceMap` argument.
+    Returns the object(s) with the least number of uses + returns all uses compounded.
+
+    returnValue =
+    {
+        cleaning =
+        {
+            objWithLeastUses = <toolObject>
+            compoundedUses = <int> --Uses collected from all tools that are the same type as `objWithLeastUses`
+        }
+        repairing =
+        {
+            objWithLeastUses = <toolObject>
+            compoundedUses = <int> --Uses collected from all tools that are the same type as `objWithLeastUses`
+        }
+    }
+--]]
+function GetMaintenanceItemsCompounded(stash, actor, maintenanceMap)
+    local cleaningLeastUses = 0
+    local repairingLeastUses = 0
+    local returnValue =
+    {
+        cleaning =
+        {
+            objWithLeastUses = nil,
+            compoundedUses = 0
+        },
+        repairing =
+        {
+            objWithLeastUses = nil,
+            compoundedUses = 0
+        }
+    }
+
+    local function itr(_, obj)
+        local objSection = obj:section()
+        local sectionFound = false
+        local isCleaning = nil
+
+        if maintenanceMap[1] == objSection then
+            sectionFound = true
+            isCleaning = true
+        elseif maintenanceMap[2] == objSection then
+            sectionFound = true
+            isCleaning = false
+        end
+
+        if sectionFound then
+            local uses = obj:get_remaining_uses()
+            if isCleaning then
+                if cleaningLeastUses == 0 or cleaningLeastUses > uses then
+                    cleaningLeastUses = uses
+                    returnValue.cleaning.objWithLeastUses = obj
+                end
+
+                returnValue.cleaning.compoundedUses = returnValue.cleaning.compoundedUses + uses
+            else
+                if repairingLeastUses == 0 or repairingLeastUses > uses then
+                    repairingLeastUses = uses
+                    returnValue.repairing.objWithLeastUses = obj
+                end
+
+                returnValue.repairing.compoundedUses = returnValue.repairing.compoundedUses + uses
+            end
+
+        end
+    end
+
+    if stash then
+        stash:iterate_inventory_box(itr, nil)
+    end
+    actor:iterate_inventory(itr, nil)
+
+    return returnValue
+end
+
+--SERIOUS: Could use unlocalizer later, so I don't duplicate the `zzzz_arti_jamming_repairs.script` table
+local toolkit_map = {
+	["pistol"] 		= {"cleaning_kit_p","toolkit_p"},
+	["shotgun"] 	= {"cleaning_kit_s","toolkit_s"},
+	["rifle_5"] 	= {"cleaning_kit_r5","toolkit_r5"},
+	["rifle_7"] 	= {"cleaning_kit_r7","toolkit_r7"},
+}
+
+function GetMaintenanceData(obj)
+	local repair_sec = SYS_GetParam(0, obj:section(), "repair_type") or "none"
+	local toolkit_sec = toolkit_map[repair_sec] or "none"
+
+	return toolkit_sec
+end
+
+--[[
+    SERIOUS - Algorithm explanation:
+
+    Let's assume these values are configured:
+
+    local barrelConditionBonusStartingLvl = 10
+    local barrelConditionBonusInterval = 5
+    local barrelConditionBonusCoeff = 10
+
+    At scav level 10 the max barrel condition for any looted weapon is: 
+    Max repair threshold + 10% 
+    After level 10 each +5 scav level adds +10%
+
+    This is why I do "math.floor(scavenging_skill / 5) * 10 - 10"
+    the -10 is to enforce the strict +10% bonus once for reaching level 10 and the +10% for each additional 5 scav levels.
+--]]
+function CalculateMaxPossibleBarrelDropCond()
+    local scavenging_skill = haru_skills.skills_levels["scavenging"].current_level
+    local maxBarrelCond = tgrCfg.Get("repairing_threshold_ceil")
+
+    local skillsCompatibility = tgrCfg.Get("skills_compatibility")
+    local barrelConditionBonusStartingLvl = tgrCfg.Get("barrel_condition_bonus_starting_lvl")
+    local barrelConditionBonusInterval = tgrCfg.Get("barrel_condition_bonus_interval")
+    local barrelConditionBonusCoeff = tgrCfg.Get("barrel_condition_bonus_coeff")
+
+    if scavenging_skill >= barrelConditionBonusStartingLvl and skillsCompatibility then
+        maxBarrelCond = clamp(maxBarrelCond + (math.floor(scavenging_skill / barrelConditionBonusInterval) * barrelConditionBonusCoeff - barrelConditionBonusCoeff), 1, 100)
+    end
+
+    return maxBarrelCond
+end
+
+local function LogConfigs()
+    msg = ""
+
+    msg = msg .. "\\n-" .. Get("cleaning_threshold")
+    msg = msg .. "\\n-" .. Get("cleaning_charge_restoration")
+    msg = msg .. "\\n-" .. Get("cleaning_charge_vice_bonus")
+    msg = msg .. "\\n-" .. Get("repairing_charge_restoration")
+    msg = msg .. "\\n-" .. Get("repairing_charge_vice_bonus")
+    msg = msg .. "\\n-" .. Get("cleaning_threshold_ceil")
+    msg = msg .. "\\n-" .. Get("repairing_threshold")
+    msg = msg .. "\\n-" .. Get("repairing_threshold_ceil")
+    msg = msg .. "\\n-" .. Get("workshop_show_maintain_button_without_vice")
+    msg = msg .. "\\n-" .. Get("skills_compatibility")
+
+    Log(msg)
+end
+
+local function RandomPartsCondForInvWeapons()
+    Log("Randomizing weapon part conditions", true)
+
+    db.actor:iterate_inventory(function(_, item)
+        if not IsMelee(item) and IsWeapon(item) then
+            local parts = item_parts.get_parts_con(item)
+
+            for name, _ in pairs(parts) do
+                parts[name] = math.random(1, 100)
+            end
+
+            item_parts.set_parts_con(item:id(), parts)
+        end
+    end, nil)
+end
+
+local function OnKeyPressCallbacks(key)
+    if key == DIK_keys.DIK_X then LogConfigs() end
+    if key == DIK_keys.DIK_C then RandomPartsCondForInvWeapons() end
+end
+
+function on_game_start()
+    if serious_workshop_utils then isWorkshopOptimizationActive = true end
+
+    if tgrCfg.Get("devDebug") then
+        RegisterScriptCallback("on_key_press", OnKeyPressCallbacks)
+    end
+end
+
+function Log(msg, ...)
+    printf(msg, ...)
+
+    if tgrCfg.Get("logToPda") then
+        news_manager.send_tip(db.actor, string.format(msg, ...), nil, "ui_icon_news_trx_communication", 6000)
+    end
+
+    if FileLogger then
+        FileLogger.log(msg, ...)
+    end
+end
