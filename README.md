@@ -38,6 +38,7 @@ This mod is designed to make gun repair more challenging, requiring more money a
 
 ### Compatibility and requirements
 
+
 - This mod **requires** GAMMA Guns Have No Condition. It must overwrite files from G.A.M.M.A. Guns Have No Condition, G.A.M.M.A Vices are Free, and G.A.M.M.A. ZCP 1.4 Balanced Spawns
 - This mod is likely incompatible with other mods that change how weapon maintenance works. Below are some mods that we know are incompatible; this list is not exhaustive
   -  [Weapon Maintain Features 'n fixes](https://github.com/Bence7661/Serious_Weapon_Maintain_Features)
@@ -47,4 +48,5 @@ This mod is designed to make gun repair more challenging, requiring more money a
 ## Credits
 
 This is a collaboration between Serious and Veer. By which I mean one of us wrote nearly all of the mod while the other one made appreciative clapping noises.
+
 - Veerserif's other mods: [find them on Discord](https://discord.com/channels/912320241713958912/1257380080397844533/1257390905560928297)
