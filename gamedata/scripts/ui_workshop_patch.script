@@ -23,7 +23,10 @@ OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 	if (not self.highlight_btn) then
 			return
-		end
+	end
+
+	local selectedItem = self.CC["inventory"] and self.CC["inventory"]:GetCell_Selected(true)
+	if not IsWeapon(selectedItem) then OldUiWorkshopRepair(self) end
 
 	self.selected_btn = self.highlight_btn
 	local sec_part = self.parts[self.selected_btn].sec
@@ -44,7 +47,6 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 		local stash = nil
 		if self.stashId then
 			stash = get_object_by_id(self.stashId)
-
 			stash:iterate_inventory_box(function(owner,obj)
 				local sec = obj:section()
 				if (sec == sec_part) then
