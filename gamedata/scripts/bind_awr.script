@@ -176,34 +176,19 @@ function actor_on_first_update() --| Callback of the first Update actor. It is e
 		end
 	end
 	
-	--// Turn on lamps for all mechanics with a dead flag, otherwise it should be off
+	--// Turn on lamps for all mechanics
 	for key, val in pairs(angles_t) do
 	
-		--// Mechanic is dead -> grant full acces + turn on lamp
-		if angles_t[key][3] == 'dead' then
-			dout('actor_on_first_update', "%s is dead. Enable lamp(s) which assigned for %s", angles_t[key][1], key)
-			Lamp(angles_t[key][1], true)
-			full_access(key,npc_s)
-			
-		--// Mechanic is unmarked for death -> turn off lamp
-		else
-			dout('actor_on_first_update', "%s is alive. Disable lamp(s) which assigned for %s", angles_t[key][1], key)
-			Lamp(angles_t[key][1], false)
-			
-			--[[
-			// If Mechanic isn't around, grant unlimited access
-			local npc_s = angles_t[key][1]
-			local se_npc = get_story_se_object(npc_s)
-			if (not se_npc) then
-				full_access(key,npc_s)
-			end
-			--]]
-		end
-		
-		if db.actor:has_info(string.format('awr_%s_access', angles_t[key][1])) then
-			dout('actor_on_first_update', "%s gave access. Enable lamp(s) which assigned for %s", angles_t[key][1], key)
-			Lamp(angles_t[key][1], true)	
-		end
+		--// grant full acces + turn on lamp on all vices
+
+		dout('actor_on_first_update', "%s is dead. Enable lamp(s) which assigned for %s", angles_t[key][1], key)
+		Lamp(angles_t[key][1], true)
+		full_access(key,angles_t[key][1])
+
+		--if db.actor:has_info(string.format('awr_%s_access', angles_t[key][1])) then
+		--	dout('actor_on_first_update', "%s gave access. Enable lamp(s) which assigned for %s", angles_t[key][1], key)
+		--	Lamp(angles_t[key][1], true)	
+		--end
 	end
 
 	--// Remove extra tables for weapons whose parts have not been replaced.
@@ -234,7 +219,7 @@ function npc_on_death_callback(victim, who) -- Callback, NPC caused by death
 			local se_actor = alife:actor()
 			killer_name = se_actor:character_name()
 		end	
-		actor_menu.set_item_news('success', 'npc', "st_awr_dead_mechanic", victim:character_name(), killer_name or game.translate_string("st_by_unknown"))
+		-- actor_menu.set_item_news('success', 'npc', "st_awr_dead_mechanic", victim:character_name(), killer_name or game.translate_string("st_by_unknown"))
 	else
 		-- if IsStalker(victim) then
 		-- 	awr_sf.dout('npc_on_death_callback', "NPC %s is not in list -> return", victim:name())			-- Отрабатывает для всех смертей, включать при необходимости
@@ -275,7 +260,7 @@ function on_game_start()
 	
 	RegisterScriptCallback("physic_object_on_use_callback", physic_object_on_use_callback)
 	RegisterScriptCallback("actor_on_first_update", actor_on_first_update)
-	RegisterScriptCallback("npc_on_death_callback", npc_on_death_callback)
+	-- RegisterScriptCallback("npc_on_death_callback", npc_on_death_callback)
 	RegisterScriptCallback("save_state", save_state)
 	RegisterScriptCallback("load_state", load_state)
 end
