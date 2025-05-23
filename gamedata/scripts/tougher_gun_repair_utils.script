@@ -26,7 +26,11 @@ function IsBetween(num, min, max)
 end
 
 function GetRepairCondToSet(itemCondition)
-    if IsPlayerUsingVice() then return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, 100) end
+    if IsPlayerUsingVice() then
+        return clamp(itemCondition
+            + tgrCfg.Get("repairing_charge_restoration")
+            + tgrCfg.Get("repairing_charge_vice_bonus"), 1, 100)
+    end
 
     --SERIOUS: Yes I deliberately use tgrCfg.cleaning_threshold as a max value.
     --This way you can't softlock yourself to: Having a 59% part that you can't clean yet, but can't reapir further either.
