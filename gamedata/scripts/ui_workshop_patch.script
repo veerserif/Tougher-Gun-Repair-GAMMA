@@ -7,17 +7,7 @@ ui_workshop.UIWorkshop.Close = function (...)
     OldUiWorkshopClose(...)
 end
 
-local clr_list = {
-	["g"]    = utils_xml.get_color("d_green"),
-	["y"]    = utils_xml.get_color("yellow"),
-	["o"]    = utils_xml.get_color("d_orange"),
-	["r"]    = utils_xml.get_color("d_red"),
-	["b"]    = utils_xml.get_color("d_cyan"),
-	["b1"]   = utils_xml.get_color("pda_blue"),
-	["b2"]   = utils_xml.get_color("d_blue"),
-	["p"]    = utils_xml.get_color("d_purple"),
-	["dark"] = utils_xml.get_color("ui_gray_2"),
-}
+local clr_list = ui_workshop.clr_list
 
 OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
