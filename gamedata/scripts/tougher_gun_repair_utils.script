@@ -6,16 +6,16 @@ function CheckRepairThreshold(itemCondition)
     if not itemCondition then return false end
 
     return IsBetween(itemCondition,
-    tgrCfg.Get("repairing_threshold"),
-    tgrCfg.Get("repairing_threshold_ceil"))
+    tgrCfg.Get("repairing_threshold", "toolkit_p"),
+    tgrCfg.Get("repairing_threshold_ceil", "toolkit_p"))
 end
 
 function CheckCleanThreshold(itemCondition)
     if not itemCondition then return false end
 
     return IsBetween(itemCondition,
-    tgrCfg.Get("cleaning_threshold"),
-    tgrCfg.Get("cleaning_threshold_ceil"))
+    tgrCfg.Get("cleaning_threshold", "cleaning_kit_p"),
+    tgrCfg.Get("cleaning_threshold_ceil", "cleaning_kit_p"))
 end
 
 function IsBetween(num, min, max)
@@ -28,23 +28,23 @@ end
 function GetRepairCondToSet(itemCondition)
     if IsPlayerUsingVice() then
         return clamp(itemCondition
-            + tgrCfg.Get("repairing_charge_restoration")
-            + tgrCfg.Get("repairing_charge_vice_bonus"), 1, 100)
+            + tgrCfg.Get("repairing_charge_restoration", "toolkit_p")
+            + tgrCfg.Get("repairing_charge_vice_bonus", "toolkit_p"), 1, 100)
     end
 
     --SERIOUS: Yes I deliberately use tgrCfg.cleaning_threshold as a max value.
     --This way you can't softlock yourself to: Having a 59% part that you can't clean yet, but can't reapir further either.
-    return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration"), 1, tgrCfg.Get("cleaning_threshold"))
+    return clamp(itemCondition + tgrCfg.Get("repairing_charge_restoration", "toolkit_p"), 1, tgrCfg.Get("cleaning_threshold", "cleaning_kit_p"))
 end
 
 function GetCleanCondToSet(itemCondition)
     if IsPlayerUsingVice() then
         return clamp(itemCondition
-            + tgrCfg.Get("cleaning_charge_restoration")
-            + tgrCfg.Get("cleaning_charge_vice_bonus"), 1, 100)
+            + tgrCfg.Get("cleaning_charge_restoration", "cleaning_kit_p")
+            + tgrCfg.Get("cleaning_charge_vice_bonus", "cleaning_kit_p"), 1, 100)
     end
 
-    return clamp(itemCondition + tgrCfg.Get("cleaning_charge_restoration"), 1, 100)
+    return clamp(itemCondition + tgrCfg.Get("cleaning_charge_restoration", "cleaning_kit_p"), 1, 100)
 end
 
 --[[
@@ -177,7 +177,7 @@ end
 --]]
 function CalculateMaxPossibleBarrelDropCond()
     local scavenging_skill = haru_skills.skills_levels["scavenging"].current_level
-    local maxBarrelCond = tgrCfg.Get("repairing_threshold_ceil")
+    local maxBarrelCond = tgrCfg.Get("repairing_threshold_ceil", "toolkit_p")
 
     local skillsCompatibility = tgrCfg.Get("skills_compatibility")
     local barrelConditionBonusStartingLvl = tgrCfg.Get("barrel_condition_bonus_starting_lvl")
@@ -191,25 +191,49 @@ function CalculateMaxPossibleBarrelDropCond()
     return maxBarrelCond
 end
 
+--[[
+    DEVELOPMENT STUFF
+--]]
 local function LogConfigs()
-    msg = ""
+    local yellow = utils_xml.get_color("yellow")
+    local green = utils_xml.get_color("green")
+    local white = utils_xml.get_color("white")
+    msg = yellow .. "The [LTX] section can contain MCM or tgrCfg sections if it used fallback!\\n \\n".. green .. "[LTX]\\n" .. white
 
-    msg = msg .. "\\n-" .. Get("cleaning_threshold")
-    msg = msg .. "\\n-" .. Get("cleaning_charge_restoration")
-    msg = msg .. "\\n-" .. Get("cleaning_charge_vice_bonus")
-    msg = msg .. "\\n-" .. Get("repairing_charge_restoration")
-    msg = msg .. "\\n-" .. Get("repairing_charge_vice_bonus")
-    msg = msg .. "\\n-" .. Get("cleaning_threshold_ceil")
-    msg = msg .. "\\n-" .. Get("repairing_threshold")
-    msg = msg .. "\\n-" .. Get("repairing_threshold_ceil")
-    msg = msg .. "\\n-" .. Get("workshop_show_maintain_button_without_vice")
-    msg = msg .. "\\n-" .. Get("skills_compatibility")
+    msg = msg .. "\\ncleaning_threshold: " .. tostring(tgrCfg.Get("cleaning_threshold", "cleaning_kit_p"))
+    msg = msg .. "\\ncleaning_threshold_ceil: " .. tostring(tgrCfg.Get("cleaning_threshold_ceil", "cleaning_kit_p"))
+    msg = msg .. "\\ncleaning_charge_restoration: " .. tostring(tgrCfg.Get("cleaning_charge_restoration", "cleaning_kit_p"))
+    msg = msg .. "\\ncleaning_charge_vice_bonus: " .. tostring(tgrCfg.Get("cleaning_charge_vice_bonus", "cleaning_kit_p"))
+    msg = msg .. "\\nrepairing_threshold: " .. tostring(tgrCfg.Get("repairing_threshold", "toolkit_p"))
+    msg = msg .. "\\nrepairing_threshold_ceil: " .. tostring(tgrCfg.Get("repairing_threshold_ceil", "toolkit_p"))
+    msg = msg .. "\\nrepairing_charge_restoration: " .. tostring(tgrCfg.Get("repairing_charge_restoration", "toolkit_p"))
+    msg = msg .. "\\nrepairing_charge_vice_bonus: " .. tostring(tgrCfg.Get("repairing_charge_vice_bonus", "toolkit_p"))
+    msg = msg .. "\\nworkshop_show_maintain_button_without_vice: " .. tostring(tgrCfg.Get("workshop_show_maintain_button_without_vice"))
+    msg = msg .. "\\nskills_compatibility: " .. tostring(tgrCfg.Get("skills_compatibility")) .. "\\n \\n"
+
+    msg = msg .. green .. "\\n[NonLTX]\\n" .. white
+    msg = msg .. "\\ncleaning_threshold: " .. tostring(tgrCfg.Get("cleaning_threshold"))
+    msg = msg .. "\\ncleaning_threshold_ceil: " .. tostring(tgrCfg.Get("cleaning_threshold_ceil"))
+    msg = msg .. "\\ncleaning_charge_restoration: " .. tostring(tgrCfg.Get("cleaning_charge_restoration"))
+    msg = msg .. "\\ncleaning_charge_vice_bonus: " .. tostring(tgrCfg.Get("cleaning_charge_vice_bonus"))
+    msg = msg .. "\\nrepairing_threshold: " .. tostring(tgrCfg.Get("repairing_threshold"))
+    msg = msg .. "\\nrepairing_threshold_ceil: " .. tostring(tgrCfg.Get("repairing_threshold_ceil"))
+    msg = msg .. "\\nrepairing_charge_restoration: " .. tostring(tgrCfg.Get("repairing_charge_restoration"))
+    msg = msg .. "\\nrepairing_charge_vice_bonus: " .. tostring(tgrCfg.Get("repairing_charge_vice_bonus"))
+    msg = msg .. "\\nworkshop_show_maintain_button_without_vice: " .. tostring(tgrCfg.Get("workshop_show_maintain_button_without_vice"))
+    msg = msg .. "\\nskills_compatibility: " .. tostring(tgrCfg.Get("skills_compatibility")) .. "\\n \\n"
+
+    msg = msg .. green .. "[DEV]\\n" .. white
+    msg = msg .. "\\nlogToPda: " .. tostring(tgrCfg.Get("logToPda"))
+    msg = msg .. "\\nbarrel_condition_bonus_starting_lvl: " .. tostring(tgrCfg.Get("barrel_condition_bonus_starting_lvl"))
+    msg = msg .. "\\nbarrel_condition_bonus_interval: " .. tostring(tgrCfg.Get("barrel_condition_bonus_interval"))
+    msg = msg .. "\\nbarrel_condition_bonus_coeff: " .. tostring(tgrCfg.Get("barrel_condition_bonus_coeff"))
 
     Log(msg)
 end
 
 local function RandomPartsCondForInvWeapons()
-    Log("Randomizing weapon part conditions", true)
+    Logf("Randomizing weapon part conditions", true)
 
     db.actor:iterate_inventory(function(_, item)
         if not IsMelee(item) and IsWeapon(item) then
@@ -229,15 +253,19 @@ local function OnKeyPressCallbacks(key)
     if key == DIK_keys.DIK_C then RandomPartsCondForInvWeapons() end
 end
 
-function on_game_start()
-    if serious_workshop_utils then isWorkshopOptimizationActive = true end
+function Log(msg)
+    print(msg)
 
-    if tgrCfg.Get("devDebug") then
-        RegisterScriptCallback("on_key_press", OnKeyPressCallbacks)
+    if tgrCfg.Get("logToPda") then
+        news_manager.send_tip(db.actor, msg, nil, "ui_icon_news_trx_communication", 6000)
+    end
+
+    if FileLogger then
+        FileLogger.log(msg)
     end
 end
 
-function Log(msg, ...)
+function Logf(msg, ...)
     printf(msg, ...)
 
     if tgrCfg.Get("logToPda") then
@@ -246,5 +274,13 @@ function Log(msg, ...)
 
     if FileLogger then
         FileLogger.log(msg, ...)
+    end
+end
+
+function on_game_start()
+    if serious_workshop_utils then isWorkshopOptimizationActive = true end
+
+    if tgrCfg.Get("devDebug") then
+        RegisterScriptCallback("on_key_press", OnKeyPressCallbacks)
     end
 end

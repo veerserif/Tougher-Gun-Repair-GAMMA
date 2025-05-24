@@ -62,7 +62,7 @@ OldProcessPart = zzzz_arti_jamming_repairs.process_part
 zzzz_arti_jamming_repairs.process_part = function(name, condition)
 	local severity = condition == -1 and "missing" or math.floor(condition / 20)
 	local clr = clr_r
-	if condition >= tgrCfg.Get("cleaning_threshold") then clr = clr_g -- changed to use cleaning_threshold
+	if condition >= tgrCfg.Get("cleaning_threshold", "cleaning_kit_p") then clr = clr_g -- changed to use cleaning_threshold
 	elseif condition > 20 then clr = clr_o 
 	elseif condition == -1 then clr = clr_r end
 	local part_name = ""
