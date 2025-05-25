@@ -1,4 +1,5 @@
 local tgrCfg = tougher_gun_repair_config
+local toolkit_map = zzzz_arti_jamming_repairs.toolkit_map
 isUsingVice = false
 isWorkshopOptimizationActive = false
 
@@ -143,14 +144,6 @@ function GetMaintenanceItemsCompounded(stash, actor, maintenanceMap)
 
     return returnValue
 end
-
---SERIOUS: Could use unlocalizer later, so I don't duplicate the `zzzz_arti_jamming_repairs.script` table
-local toolkit_map = {
-	["pistol"] 		= {"cleaning_kit_p","toolkit_p"},
-	["shotgun"] 	= {"cleaning_kit_s","toolkit_s"},
-	["rifle_5"] 	= {"cleaning_kit_r5","toolkit_r5"},
-	["rifle_7"] 	= {"cleaning_kit_r7","toolkit_r7"},
-}
 
 function GetMaintenanceData(obj)
 	local repair_sec = SYS_GetParam(0, obj:section(), "repair_type") or "none"

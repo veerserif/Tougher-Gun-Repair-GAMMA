@@ -98,17 +98,14 @@ zzzz_arti_jamming_repairs.init_maintenance_menu = function(obj)
 	local repair_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, false)
 	for k,v in pairs(parts) do
 		if is_part(k) then
-			if tgrUtils.CheckRepairThreshold(v) and repair_kit then
+			if tgrUtils.CheckRepairThreshold(v) and v < tgrCfg.Get("cleaning_threshold", "cleaning_kit_p") and repair_kit then
 				table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, false))
 				table.insert(context_action,  "replace_part")
 				table.insert(context_params, {obj:id(), k, repair_kit:section(), false})
-
-			elseif tgrUtils.CheckCleanThreshold(v) then
-				if clean_kit then
-					table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, true))
-					table.insert(context_action,  "clean_part")
-					table.insert(context_params, {obj:id(), k, clean_kit:section(), true})
-				end
+			elseif tgrUtils.CheckCleanThreshold(v) and clean_kit then
+				table.insert(context_str, zzzz_arti_jamming_repairs.replace_name(k, true))
+				table.insert(context_action,  "clean_part")
+				table.insert(context_params, {obj:id(), k, clean_kit:section(), true})
 			end
 		end
 	end
