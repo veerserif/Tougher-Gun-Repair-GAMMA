@@ -8,6 +8,19 @@
         <text>Tougher Gun Repair</text>
     </string>
 
+    <string id="ui_mcm_tougher_gun_repair_overwrite_ltx_help">
+        <text>You need to tick the below checkbox for any of the MCM options to take effect
+        \nWithout it all values are read from LTX files.</text>
+    </string>
+
+    <string id="ui_mcm_tougher_gun_repair_overwrite_ltx_desc">
+        <text>Tick this if you want to overwrite base values.</text>
+    </string>
+
+    <string id="ui_mcm_tougher_gun_repair_overwrite_ltx">
+        <text>Overwrite LTX values</text>
+    </string>
+
     <!-- CLEANING -->
     <string id="ui_mm_header_cleaning">
         <text>Cleaning</text>

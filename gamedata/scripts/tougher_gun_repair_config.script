@@ -1,8 +1,38 @@
 local mcm = tougher_gun_repair_mcm.get_config
-function Get(configSect)
+
+--Lazy ass. Should properly rename every config instead. That would require a lot (maybe not a lot) of script edits. 
+local configToLtxNameMap =
+{
+    ["cleaning_threshold"] = "repair_min_condition",
+    ["cleaning_threshold_ceil"] = "repair_max_condition",
+    ["cleaning_charge_restoration"] = "repair_add_condition",
+    ["cleaning_charge_vice_bonus"] = "vice_bonus",
+    ["repairing_threshold"] = "repair_min_condition",
+    ["repairing_threshold_ceil"] = "repair_max_condition",
+    ["repairing_charge_restoration"] = "repair_add_condition",
+    ["repairing_charge_vice_bonus"] = "vice_bonus"
+}
+
+function Get(configSect, objSection)
+    local shouldOverrideLtx = mcm("overwrite_ltx")
+    local originalConfigSect = configSect
+
+    if not shouldOverrideLtx and objSection then
+        configSect = configToLtxNameMap[configSect]
+
+        if configSect then
+            local ltxValue = ConvertType(SYS_GetParam(0, objSection, configSect))
+            if ltxValue then return type(ltxValue) == "number" and (ltxValue * 100) or ltxValue end
+
+            return Get(originalConfigSect, nil) --Fallback to read config from MCM or this file if none found in `.ltx`
+        else --Fallback for if there's no `.ltx` section map or section altogether.
+            configSect = originalConfigSect
+        end
+    end
+
     if configSect == "repairing_charge_restoration" then
         return (mcm("overwrite_repairing_charge_restoration") and mcm("repairing_charge_restoration"))
-            or math.ceil(repairing_threshold_ceil / 2)
+            or math.ceil(Get("repairing_threshold_ceil") / 2)
     end
     if configSect == "cleaning_threshold_ceil" then return cleaning_threshold_ceil end
     if configSect == "repairing_threshold" then return repairing_threshold end
@@ -10,9 +40,32 @@ function Get(configSect)
     if configSect == "barrel_condition_bonus_starting_lvl" then return barrel_condition_bonus_starting_lvl end
     if configSect == "barrel_condition_bonus_interval" then return barrel_condition_bonus_interval end
     if configSect == "barrel_condition_bonus_coeff" then return barrel_condition_bonus_coeff end
+    if configSect == "workshop_show_maintain_button_without_vice" then return workshop_show_maintain_button_without_vice end
     if configSect == "devDebug" then return devDebug end
+    if configSect == "logToPda" then return logToPda end
 
     return mcm(configSect)
+end
+
+function ConvertType(value)
+    if not value then return nil end
+
+    -- Try number
+    local num = tonumber(value)
+    if num ~= nil then
+        return num
+    end
+
+    -- Try boolean
+    local lower = string.lower(value)
+    if lower == "true" then
+        return true
+    elseif lower == "false" then
+        return false
+    end
+
+    -- Return original string
+    return value
 end
 
 devDebug = false

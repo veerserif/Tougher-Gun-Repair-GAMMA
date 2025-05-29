@@ -10,6 +10,12 @@ function on_mcm_load()
         {  -- options tree goes here
           { id = "sld", type = "slide", text = "ui_mcm_tgr_sld_text", link = "ui_options_slider_gameplay_diff", size = {512, 50}, spacing = 20},
 
+          --LTX Override
+          --  ON: `.ltx` configurations will be ignored and ones below will be used instead.
+          --  OFF: All values that are present in `.ltx` files will be read from there.
+          { id = "overwrite_ltx_help", type = "desc", clr = {200, 255, 200, 200}, text="ui_mcm_tougher_gun_repair_overwrite_ltx_help"},
+          { id = "overwrite_ltx",  type = "check", val = 1, def = false},
+
           --Cleaning
           { id = "cleaning_title", type= "title", text= "ui_mm_header_cleaning", align= "l", clr= {255,200,200,200}},
           { id = "cleaning_threshold",  type = "track", val = 2, min = 2, max = 98, def = 60, step= 1, size = {512, 50}, spacing = 20},

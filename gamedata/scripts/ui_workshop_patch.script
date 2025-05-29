@@ -7,23 +7,11 @@ ui_workshop.UIWorkshop.Close = function (...)
     OldUiWorkshopClose(...)
 end
 
-local clr_list = {
-	["g"]    = utils_xml.get_color("d_green"),
-	["y"]    = utils_xml.get_color("yellow"),
-	["o"]    = utils_xml.get_color("d_orange"),
-	["r"]    = utils_xml.get_color("d_red"),
-	["b"]    = utils_xml.get_color("d_cyan"),
-	["b1"]   = utils_xml.get_color("pda_blue"),
-	["b2"]   = utils_xml.get_color("d_blue"),
-	["p"]    = utils_xml.get_color("d_purple"),
-	["dark"] = utils_xml.get_color("ui_gray_2"),
-}
+local clr_list = ui_workshop.clr_list
 
 OldUiWorkshopRepair = ui_workshop.UIWorkshopRepair.ListSpareParts
 ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
-	if (not self.highlight_btn) then
-			return
-	end
+	if (not self.highlight_btn) then return end
 
 	local selectedItem = self.CC["inventory"] and self.CC["inventory"]:GetCell_Selected(true)
 	if not IsWeapon(selectedItem) then OldUiWorkshopRepair(self) end
@@ -31,6 +19,7 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 	self.selected_btn = self.highlight_btn
 	local sec_part = self.parts[self.selected_btn].sec
 	local con_part = self.parts[self.selected_btn].con
+
 	if self.maintenanceItems and self.maintenanceItems.repairing.compoundedUses >= 1 then
 		local cc = self.CC["parts"]
 		local inv, inf, size_t = {},{}, 0
@@ -94,7 +83,7 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 	end
 
 	--Enables maintenance button if legit. Also resets the part percentage fields (So the +x% disappears)
-	if self.maintenanceItems and tgrUtils.IsPlayerUsingVice() then
+	if self.maintenanceItems then
 		local cleanInfo = self.maintenanceItems.cleaning
 		local repairInfo = self.maintenanceItems.repairing
 		local maintenanceAmount = 0
@@ -103,13 +92,13 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 		if (tgrUtils.CheckCleanThreshold(con_part) and cleanInfo.objWithLeastUses) then
 			self.btn_maintain:Enable(true)
 			totalUses = cleanInfo.compoundedUses
-			maintenanceAmount = tgrCfg.Get("cleaning_charge_restoration") + tgrCfg.Get("cleaning_charge_vice_bonus")
+			maintenanceAmount = tgrUtils.GetCleanCondToSet(con_part) - con_part
 
 			utils_xml.set_icon(cleanInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		elseif tgrUtils.CheckRepairThreshold(con_part) and repairInfo.objWithLeastUses then
 			self.btn_maintain:Enable(true)
 			totalUses = repairInfo.compoundedUses
-			maintenanceAmount = tgrCfg.Get("repairing_charge_restoration") + tgrCfg.Get("repairing_charge_vice_bonus")
+			maintenanceAmount = tgrUtils.GetRepairCondToSet(con_part) - con_part
 
 			utils_xml.set_icon(repairInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		end
@@ -158,7 +147,7 @@ ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
 		return
 	end
 
-	if cont == "inventory" and tgrUtils.IsPlayerUsingVice() then
+	if cont == "inventory" then
 		local obj = self.CC["inventory"]:GetCell_Selected(true)
 		local stashId = self.stashId or (self.owner and self.owner.stashId)
 		local stashObj = stashId and get_object_by_id(stashId) or nil
