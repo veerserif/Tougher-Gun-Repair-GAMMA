@@ -43,7 +43,6 @@ end
 
 OldPhysicOnUseCb = bind_awr.physic_object_on_use_callback
 bind_awr.physic_object_on_use_callback = function(_obj,who) -- Binder function using vise mesh
-    FileLogger.log("MONKEE AWR")
 	if not (_obj) or not (string.match(_obj:name(), "awr")) then
 		return
 	end
