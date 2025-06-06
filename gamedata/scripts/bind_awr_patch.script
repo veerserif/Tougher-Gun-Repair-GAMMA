@@ -1,0 +1,91 @@
+local angles_t = bind_awr.angles_t
+local dout = bind_awr.dout
+
+OldBindAwrAccess = bind_awr.access
+bind_awr.access = function(obj) --| Access to a vice, taking into account possible death of the mechanic
+
+	if not (obj) then
+		return
+	end
+	
+	--// You should be able to use any workshop in Warfare mode 
+	if _G.WARFARE or (smr_amain_mcm and smr_amain_mcm.get_config("smr_enabled") and smr_stalkers_mcm.get_config("base_population") == "sim_smr_none") then
+		return true
+	end
+	
+	local name = obj:name()
+	dout(nil, "Request access for %s", name)
+
+	--// Mechanic is dead - access is unlimited
+	if angles_t[name] then
+		if angles_t[name][3] == 'dead' then
+			dout(nil, "Mechanic is dead. Full access")
+			return true
+		end
+	end
+	
+	--// Access was granted by a mechanic.
+	if db.actor:has_info(string.format("awr_%s_access",angles_t[name][1])) then
+		dout(nil, "Mechanic gave access")
+		return true
+	end
+	
+	--// Debugging
+	local npc = get_story_object(angles_t[name][1])
+	if npc then
+		if npc:alive() then
+			dout(nil, "Access not granted. NPC %s by id %s is alive", angles_t[name][1], npc:id())
+		else
+			dout(nil, "![ERROR] NPC %s by id %s bugged, because he is online and is not alive, but function OnDeath was not called", angles_t[name][1], npc:id())
+		end
+	end
+end
+
+OldPhysicOnUseCb = bind_awr.physic_object_on_use_callback
+bind_awr.physic_object_on_use_callback = function(_obj,who) -- Binder function using vise mesh
+    FileLogger.log("MONKEE AWR")
+	if not (_obj) or not (string.match(_obj:name(), "awr")) then
+		return
+	end
+	
+	--// The condition for the "parent" vise, spawn through all.spawn
+	if bind_awr.access(_obj) and string.match(_obj:name(), "awr_tiski") and _obj:position():distance_to(db.actor:position()) < 1.5 then
+		
+		--// Checking the table for "empty"
+		bind_awr.r_unused()
+		
+		--// Gather mechanic info
+		local flag_1,flag_2,flag_3,flag_4 = false,false,false,false
+		local name = _obj:name()
+		local mechanic = name and angles_t[name] and angles_t[name][1]
+		if mechanic then
+			flag_1 = db.actor:has_info(mechanic .. "_upgrade_tier_1")
+			flag_2 = db.actor:has_info(mechanic .. "_upgrade_tier_2")
+			flag_3 = db.actor:has_info(mechanic .. "_upgrade_tier_3")
+			
+			local drugkit_done = bind_awr.ini_manager:r_string_ex("drugkit_access",mechanic)
+			if drugkit_done and db.actor:has_info(drugkit_done) then
+				flag_4 = true
+			end
+		end
+
+		local function start_ui()
+			--// Call UI
+			local hud = get_hud()
+			--if ui then
+				--ui:HideDialog()
+			--end
+			ui = ui_workshop and ui_workshop.get_workshop_ui(hud, mechanic, {flag_1,flag_2,flag_3,flag_4,false})
+			if (ui) then
+				dout(nil, "call UI")
+				ui:ShowDialog(true)
+				tougher_gun_repair_utils.isUsingVice = true
+			end
+			return true
+		end
+		
+		local delay = actor_effects.is_animations_on() and 2 or 0
+		actor_effects.play_item_fx("workshop_dummy")
+		CreateTimeEvent(0,"delay_workshop",delay,start_ui)
+	end
+end
