@@ -41,6 +41,9 @@ function Get(configSect, objSection)
     if configSect == "barrel_condition_bonus_interval" then return barrel_condition_bonus_interval end
     if configSect == "barrel_condition_bonus_coeff" then return barrel_condition_bonus_coeff end
     if configSect == "workshop_show_maintain_button_without_vice" then return workshop_show_maintain_button_without_vice end
+    if configSect == "base_degrade_factor" then return base_degrade_factor end
+    if configSect == "advanced_gun_part_cond_drop_penalty" then return advanced_gun_part_cond_drop_penalty end
+    if configSect == "advanced_guns" then return advanced_guns end
     if configSect == "devDebug" then return devDebug end
     if configSect == "logToPda" then return logToPda end
 
@@ -85,8 +88,16 @@ barrel_condition_bonus_starting_lvl = 10
 barrel_condition_bonus_interval = 5
 barrel_condition_bonus_coeff = 10
 
+base_degrade_factor = 1.2
+advanced_gun_part_cond_drop_penalty = 15 --Expressed as %. Type C, D guns.
+advanced_guns =
+{
+    ["rifle_5"] = true,
+    ["rifle_7"] = true
+}
+
 --In MCM
-cleaning_threshold =  60 --Item condition has to be at least x% to allow cleaning.
+cleaning_threshold = 60 --Item condition has to be at least x% to allow cleaning.
 cleaning_charge_restoration = 15
 cleaning_charge_vice_bonus = 10
 
