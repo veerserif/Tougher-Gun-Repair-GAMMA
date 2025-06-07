@@ -41,6 +41,7 @@ function Get(configSect, objSection)
     if configSect == "barrel_condition_bonus_interval" then return barrel_condition_bonus_interval end
     if configSect == "barrel_condition_bonus_coeff" then return barrel_condition_bonus_coeff end
     if configSect == "workshop_show_maintain_button_without_vice" then return workshop_show_maintain_button_without_vice end
+    if configSect == "base_degrade_factor" then return base_degrade_factor end
     if configSect == "devDebug" then return devDebug end
     if configSect == "logToPda" then return logToPda end
 
@@ -84,6 +85,8 @@ repairing_threshold_ceil = 59
 barrel_condition_bonus_starting_lvl = 10
 barrel_condition_bonus_interval = 5
 barrel_condition_bonus_coeff = 10
+
+base_degrade_factor = 1.2
 
 --In MCM
 cleaning_threshold =  60 --Item condition has to be at least x% to allow cleaning.

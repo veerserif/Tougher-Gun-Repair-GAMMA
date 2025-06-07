@@ -1,0 +1,46 @@
+local tgrCfg = tougher_gun_repair_config
+local cgd = arti_jamming.cgd
+local jammed_guns = arti_jamming.jammed_guns
+local get_config = arti_jamming.get_config
+
+OldArtiOnWeaponFired = arti_jamming.actor_on_weapon_fired
+arti_jamming.actor_on_weapon_fired = function (obj, wpn, ammo_elapsed, grenade_elapsed, ammo_type, grenade_type)
+    if (obj:id() ~= AC_ID) then
+		return
+	end
+	if wpn:id() ~= cgd.id or not cgd.has_parts or wpn:get_ammo_in_magazine() == 0 or arti_jamming.missing_parts(wpn) or wpn:weapon_in_grenade_mode() then
+		return 
+	end
+
+	if guarantee_not_jam then
+		guarantee_not_jam = false
+	end
+
+	-- calc and apply jam
+	local wpn_obj = utils_item.item_is_fa(wpn) and wpn
+	if wpn_obj then
+		-- calc and apply extra degradation in rain
+		local degradation_factor = tgrCfg.Get("base_degrade_factor")
+		if level.rain_factor() > 0.3 and not GetEvent("current_safe_cover") then
+			degradation_factor = degradation_factor * (get_config("degradation") or 1.5)
+		end
+		degradation_factor = degradation_factor * arti_jamming.get_overheat_modifier(wpn_obj)
+		if degradation_factor > 1 then
+			degradation_factor = degradation_factor - 1
+			local degradation = degradation_factor * cgd.current_gun_shot_dec
+			arti_jamming.print_dbg("Degrading by additional %s", degradation)
+
+			wpn_obj:set_condition(clamp(wpn_obj:condition() - degradation, 0, 0.999))
+		end
+
+		if jammed_guns[wpn_obj:id()] then
+			level.release_action(bind_to_dik(key_bindings.kWPN_FIRE))
+		end
+		if (not cgd.parts or is_empty(cgd.parts)) then return 
+		elseif (not jammed_guns[wpn_obj:id()]) then
+			local old_ammo = wpn:get_ammo_type() % 3 ~= 0
+			arti_jamming.calculate_jam(wpn_obj, old_ammo)
+			arti_jamming.calculate_damage(wpn_obj, old_ammo)
+		end
+	end
+end
