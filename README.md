@@ -20,13 +20,14 @@ This mod is designed to make gun repair more challenging, requiring more money a
 - Using a repair kit charge to clean a gun part (as in, right click the gun → "Repair part") will always add half of the repair threshold, rounded up (+30% by default)
 
 ### Workbenches
-- Cleaning kits and repair kits gain a +5% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add +20% and repair kits will add +25%)
+- Cleaning kits and repair kits gain a +10% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add +25% and repair kits will add +30%)
 - Barrels can only be replaced at an **actual workbench**, not if you just double-click or Use a set of tools out in the field
 
 ### Other changes
 - Initially, no weapon spawns with a usable barrel. This changes as your Scavenging level increases (can be configured in MCM). ALL guns require some level of maintenance in order to get them fully working
-- Hidden gun condition is now locked to 95% - this should mean that your guns jam far less frequently once fully fixed, and hopefully sidesteps issues with Nimble or other gun trade quests
+- Nimble and other gun trade quests fixes ported from `dev2` so you should hopefully not run into issues with that any more
 - Mechanics no longer sell all cleaning kits at supply level 1, so the option to buy cleaning kits is now locked behind upgrading mechanic supply levels. You can still craft all cleaning kits with just a basic toolkit
+- Cleaning and repair kits now cost a lot more to buy, and sell for far less (generally less than the cost of crafting it)
 
 ## How to install
 - Download the mod from the [**releases** tab](https://github.com/veerserif/Tougher-Gun-Repair-GAMMA/releases). Do not extract.
