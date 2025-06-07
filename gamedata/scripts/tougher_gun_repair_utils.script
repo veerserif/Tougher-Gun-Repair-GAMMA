@@ -179,6 +179,8 @@ function CalculateMaxPossibleBarrelDropCond()
 
     if scavenging_skill >= barrelConditionBonusStartingLvl and skillsCompatibility then
         maxBarrelCond = clamp(maxBarrelCond + (math.floor(scavenging_skill / barrelConditionBonusInterval) * barrelConditionBonusCoeff - barrelConditionBonusCoeff), 1, 100)
+    else
+        maxBarrelCond = maxBarrelCond - 1 --So we're under the cleaning threshold.
     end
 
     return maxBarrelCond
