@@ -152,6 +152,15 @@ function GetMaintenanceData(obj)
 	return toolkit_sec
 end
 
+function IsWeaponAdvanced(weapon)
+    if not weapon then return false end
+
+    local repairType = SYS_GetParam(0, weapon:section(), "repair_type") or "none"
+    local advancedGuns = tgrCfg.Get("advanced_guns")
+
+    return advancedGuns and advancedGuns[repairType] and true or false
+end
+
 --[[
     SERIOUS - Algorithm explanation:
 
@@ -179,6 +188,8 @@ function CalculateMaxPossibleBarrelDropCond()
 
     if scavenging_skill >= barrelConditionBonusStartingLvl and skillsCompatibility then
         maxBarrelCond = clamp(maxBarrelCond + (math.floor(scavenging_skill / barrelConditionBonusInterval) * barrelConditionBonusCoeff - barrelConditionBonusCoeff), 1, 100)
+    else
+        maxBarrelCond = maxBarrelCond - 1 --So we're under the cleaning threshold.
     end
 
     return maxBarrelCond
