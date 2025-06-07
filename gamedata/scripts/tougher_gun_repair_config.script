@@ -88,9 +88,9 @@ barrel_condition_bonus_coeff = 10
 --In MCM
 cleaning_threshold =  60 --Item condition has to be at least x% to allow cleaning.
 cleaning_charge_restoration = 15
-cleaning_charge_vice_bonus = 5
+cleaning_charge_vice_bonus = 10
 
-repairing_charge_vice_bonus = 5 --Item condition has to be at least x% to allow repairing.
+repairing_charge_vice_bonus = 10 --Item condition has to be at least x% to allow repairing.
 repairing_charge_restoration = math.ceil(repairing_threshold_ceil / 2) --A charge always restores half of the max threshold (We are rounding up in a very forgiving way)
 
 skills_compatibility = true
