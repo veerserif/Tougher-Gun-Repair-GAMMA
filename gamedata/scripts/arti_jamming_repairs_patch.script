@@ -84,6 +84,17 @@ zzzz_arti_jamming_repairs.has_suitable_kit = function(obj)
 	return allow
 end
 
+function GetExactKit(obj, clean)
+	local repair_sec = SYS_GetParam(0, obj:section(), "repair_type") or "none"
+	local toolkit_sec = toolkit_map[repair_sec] or "none"
+
+	if clean then
+		return db.actor:object(toolkit_sec[1]) or nil
+	else
+		return db.actor:object(toolkit_sec[2]) or nil
+	end
+end
+
 --SERIOUS: Need to patch differently to stay compatible with SERIOUS Weapon Maintain Features. 
 --(I just mark these veer, so later I can produce the compatibility patch easier)
 OldInitMaintenanceMenu = zzzz_arti_jamming_repairs.init_maintenance_menu
@@ -93,8 +104,9 @@ zzzz_arti_jamming_repairs.init_maintenance_menu = function(obj)
 	local context_params = {}
 
 	local parts = item_parts.get_parts_con(obj)
-	local clean_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, true)
-	local repair_kit = zzzz_arti_jamming_repairs.get_suitable_kit(obj, false)
+	local clean_kit = GetExactKit(obj, true)
+	local repair_kit = GetExactKit(obj, false)
+
 	for k,v in pairs(parts) do
 		if is_part(k) then
 			if tgrUtils.CheckRepairThreshold(v) and v < tgrCfg.Get("cleaning_threshold", "cleaning_kit_p") and repair_kit then
