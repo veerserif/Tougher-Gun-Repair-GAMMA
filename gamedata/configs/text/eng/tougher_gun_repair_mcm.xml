@@ -9,12 +9,12 @@
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_ltx_help">
-        <text>You need to tick the below checkbox for any of the MCM options to take effect
-        \nWithout it all values are read from LTX files.</text>
+        <text>If this checkbox is enabled, repairing gun parts outside of guns (with the default Anomaly system) will use these MCM values for condition gain.
+        \nWithout it, repairing gun parts outside of guns (with the default Anomaly system) will use LTX values for condition gain.</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_ltx_desc">
-        <text>Tick this if you want to overwrite base values.</text>
+        <text>Tick this if you want to overwrite base values from the LTX configs.</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_ltx">
@@ -35,11 +35,11 @@
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_cleaning_charge_restoration_desc">
-        <text>Condition gain from a single cleaning kit charge (in %)</text>
+        <text>Condition gain from using a single cleaning kit charge (in %)</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_cleaning_charge_restoration">
-        <text>Cleaning charge restoration</text>
+        <text>Cleaning charge condition gain</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_cleaning_charge_vice_bonus_desc">
@@ -56,24 +56,24 @@
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_repairing_charge_restoration_help">
-        <text>If you want to overwrite the "Repairing charge restoration" option then tick this so the changes take effect from the slide
+        <text>If you want to overwrite the "Repairing charge condition gain" option, enable this so the changes take effect from the slide
         \nTo restore the default value just untick this checkbox (You don't have to set the slider back)</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_repairing_charge_restoration_desc">
-        <text>Tick this to make the changes from the "Repairing charge restoration" take effect</text>
+        <text>Tick this to make the changes from the "Repairing charge condition gain" take effect</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_overwrite_repairing_charge_restoration">
-        <text>Overwrite repairing charge restoration default</text>
+        <text>Overwrite repairing charge condition gain default</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_repairing_charge_restoration_desc">
-        <text>Condition gain from a single repairing kit charge (in %)</text>
+        <text>Condition gain from using a single repairing kit charge (in %)</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_repairing_charge_restoration">
-        <text>Repairing charge restoration</text>
+        <text>Repairing charge condition gain</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_repairing_charge_vice_bonus_desc">
@@ -90,7 +90,8 @@
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_skills_compatibility_desc">
-        <text>Unchecking this will result in the max lootable barrel condition to not scale with your scavenging level.</text>
+        <text>Unchecking this will stop lootable gun barrel conditions from scaling with your Scavenging skill.
+        \nIt will always be capped at a maximum of 60%.</text>
     </string>
 
     <string id="ui_mcm_tougher_gun_repair_skills_compatibility">

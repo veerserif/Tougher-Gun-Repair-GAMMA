@@ -27,6 +27,7 @@ This mod is designed to make gun repair more challenging, requiring more money a
 
 ### Other changes
 - Initially, no weapon spawns with a usable barrel. This changes as your Scavenging level increases (can be configured in MCM). ALL guns require some level of maintenance in order to get them fully working
+    - Type C/D guns spawn with worse part conditions overall, compared to Type A/B guns
 - Nimble and other gun trade quests fixes ported from `dev2` so you should hopefully not run into issues with that any more
 - Mechanic stocks are adjusted, generally reducing item availability and making supply level upgrades more meaningful
     - Mechanics no longer sell all cleaning kits at supply level 1, so the option to buy cleaning kits is now locked behind upgrading mechanic supply levels.
