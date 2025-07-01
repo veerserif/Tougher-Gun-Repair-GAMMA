@@ -102,7 +102,6 @@ ui_workshop.UIWorkshopRepair.ListSpareParts = function (self)
 
 			utils_xml.set_icon(repairInfo.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
 		end
-
 		if maintenanceAmount > 0 then
 			for i=1,6 do
 				local shouldUpdate = not self.new_con or not self.new_con[i]
@@ -160,20 +159,38 @@ ui_workshop.UIWorkshopRepair.On_CC_Mouse1 = function (self, cont, idx)
 		if IsWeapon(obj) then
 			self.btn_maintain:Show(true)
 			
-			--Enable the clicking of the item parts if the player has at least 1 cleaning kit.
-			if self.maintenanceItems.repairing.compoundedUses <= 0 and self.maintenanceItems.cleaning.compoundedUses >= 1 then
-				utils_xml.set_icon(self.maintenanceItems.cleaning.objWithLeastUses:section(), false, self.itm_ico_temp_rq, self.itm_ico_rq)
+			--Enable the clicking of the item parts if the player has at least 1 cleaning or repair kit.
+			local hasAtLeastOneRep = self.maintenanceItems.repairing.compoundedUses >= 1
+			local hasAtLeastOneClean = self.maintenanceItems.cleaning.compoundedUses >= 1
+			local iconSection = (hasAtLeastOneRep and self.maintenanceItems.repairing.objWithLeastUses:section())
+								or (hasAtLeastOneClean and self.maintenanceItems.cleaning.objWithLeastUses:section())
+								or nil
+
+			if hasAtLeastOneRep or hasAtLeastOneClean then
+				utils_xml.set_icon(iconSection, false, self.itm_ico_temp_rq, self.itm_ico_rq)
 				self.itm_num_rq:SetText(clr_list["g"] .. tostring(self.maintenanceItems.cleaning.compoundedUses))
 
 				for i=1,6 do
 					local part = self.parts[i]
 					local con = 0
 
+					--Enables and shows non-greyed out icons for part scheme parts if conditions are met.
 					if part and part.con then
 						con = utils_item.get_cond_static(part.con)
-						if tgrUtils.CheckCleanThreshold(con) then
+						if (hasAtLeastOneRep and tgrUtils.CheckRepairThreshold(con))
+						or (hasAtLeastOneClean and tgrUtils.CheckCleanThreshold(con)) then
+
+							utils_xml.set_icon(self.parts[i].sec, false, self.itm_ico_temp[i], self.itm_ico[i])
 							self.itm_btn[i]:Show(true)
 						end
+					end
+				end
+			else
+				for i=1,6 do
+					local part = self.parts[i]
+					if part and part.con then
+						utils_xml.set_icon(self.parts[i].sec, true, self.itm_ico_temp[i], self.itm_ico[i])
+						self.itm_btn[i]:Show(false)
 					end
 				end
 			end

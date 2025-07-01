@@ -20,13 +20,19 @@ This mod is designed to make gun repair more challenging, requiring more money a
 - Using a repair kit charge to clean a gun part (as in, right click the gun → "Repair part") will always add half of the repair threshold, rounded up (+30% by default)
 
 ### Workbenches
-- Cleaning kits and repair kits gain a +5% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add +20% and repair kits will add +25%)
+- Cleaning kits and repair kits gain a +10% bonus if you use them at a workbench to clean gun parts (as in, cleaning kits will add +25% and repair kits will add +30%)
 - Barrels can only be replaced at an **actual workbench**, not if you just double-click or Use a set of tools out in the field
+- Workbench crafting recipe is changed to require slightly fewer scraps, and more other crafting components
+- Workbench cost is doubled
 
 ### Other changes
 - Initially, no weapon spawns with a usable barrel. This changes as your Scavenging level increases (can be configured in MCM). ALL guns require some level of maintenance in order to get them fully working
-- Hidden gun condition is now locked to 95% - this should mean that your guns jam far less frequently once fully fixed, and hopefully sidesteps issues with Nimble or other gun trade quests
-- Mechanics no longer sell all cleaning kits at supply level 1, so the option to buy cleaning kits is now locked behind upgrading mechanic supply levels. You can still craft all cleaning kits with just a basic toolkit
+    - Type C/D guns spawn with worse part conditions overall, compared to Type A/B guns
+- Nimble and other gun trade quests fixes ported from `dev2` so you should hopefully not run into issues with that any more
+- Mechanic stocks are adjusted, generally reducing item availability and making supply level upgrades more meaningful
+    - Mechanics no longer sell all cleaning kits at supply level 1, so the option to buy cleaning kits is now locked behind upgrading mechanic supply levels.
+    - Mechanics sell fewer crafting inputs by default. Crafting supplies are designed so that you can make *one* crafting or repair kit, after visiting *one* mechanic at supply lvl 3 (advanced tools given). Otherwise, expect to need to visit at least two mechanics to make any crafting or repair kits
+- Cleaning and repair kits now cost a lot more to buy, and sell for far less (only 20% of their cost value)
 
 ## How to install
 - Download the mod from the [**releases** tab](https://github.com/veerserif/Tougher-Gun-Repair-GAMMA/releases). Do not extract.
@@ -38,10 +44,11 @@ This mod is designed to make gun repair more challenging, requiring more money a
 
 ### Compatibility and requirements
 
-
 - This mod **requires** GAMMA Guns Have No Condition. It must overwrite files from G.A.M.M.A. Guns Have No Condition, G.A.M.M.A Vices are Free, and G.A.M.M.A. ZCP 1.4 Balanced Spawns
 - This mod is likely incompatible with other mods that change how weapon maintenance works. Below are some mods that we know are incompatible; this list is not exhaustive
-  -  [Weapon Maintain Features 'n fixes](https://github.com/Bence7661/Serious_Weapon_Maintain_Features)
+  - [Weapon Maintain Features 'n fixes](https://github.com/Bence7661/Serious_Weapon_Maintain_Features)
+  - ilrath's [RPG Perks Pack for GAMMA](https://github.com/ilrathCXV/RPG-XP-Redux-Orleon-ilrathCXV) or similar RPG mods that affect weapon repair
+  - Any other mod that **replaces** `zzzz_arti_jamming_repairs.script` is likely to be incompatible
 - This mod was designed around unmodified GAMMA 0.9.3, and will cause strange results if you try to put this on vanilla Anomaly
 - We recommend, but don't currently require, the [Workshop Optimization](https://github.com/Bence7661/Serious_Workshop_Optimization) mod
 
